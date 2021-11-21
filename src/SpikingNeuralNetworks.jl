@@ -1,7 +1,7 @@
 module SpikingNeuralNetworks
 
+SNN = SpikingNeuralNetworks
 export SNN
-const SNN = SpikingNeuralNetworks
 
 using LinearAlgebra
 using SparseArrays
@@ -14,6 +14,7 @@ include("util.jl")
 
 include("neuron/if.jl")
 include("neuron/if2.jl")
+include("neuron/AdEx.jl")
 include("neuron/noisy_if.jl")
 include("neuron/poisson.jl")
 include("neuron/iz.jl")
@@ -32,3 +33,6 @@ function __init__()
 end
 
 end
+
+
+SNN = SpikingNeuralNetworks
