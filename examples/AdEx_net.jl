@@ -1,6 +1,5 @@
 using Plots
-# using SpikingNeuralNetworks
-include("../src/SpikingNeuralNetworks.jl")
+using SpikingNeuralNetworks
 SNN.@load_units
 
 E = SNN.AdEx(;N = 3200, param = SNN.AdExParameter())

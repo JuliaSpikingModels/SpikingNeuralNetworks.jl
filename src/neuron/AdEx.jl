@@ -15,7 +15,6 @@ gL    = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 	b::FT = 80.5nA
 end
 
-AdExParameter()
 @snn_kw mutable struct AdEx{VFT=Vector{Float32},VBT=Vector{Bool}} <: AbstractIF
     param::AdExParameter = AdExParameter()
     N::Int32 = 100
@@ -43,7 +42,7 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         gi[i] += dt * -gi[i] / τi
     end
     @inbounds for i = 1:N
-        fire[i] = v[i] > θ[i] + 10.
+        fire[i] = v[i] > 0.
         v[i] = ifelse(fire[i], Vr, v[i])
 		w[i] = ifelse(fire[i], w[i]+b*τw, w[i])
     end

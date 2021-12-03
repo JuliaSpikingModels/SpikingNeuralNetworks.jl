@@ -33,6 +33,3 @@ function __init__()
 end
 
 end
-
-
-SNN = SpikingNeuralNetworks
