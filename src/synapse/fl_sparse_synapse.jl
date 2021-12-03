@@ -36,8 +36,8 @@ end
 
 function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
     @unpack W, rI, rJ, g, P, q, u, w, f, z = c
-    z = dot(w, rI)
-    g .= z .* u
+    c.z = dot(w, rI)
+    g .= c.z .* u
     fill!(q, zero(Float32))
     @inbounds for j in 1:(length(colptr) - 1)
         rJj = rJ[j]
@@ -50,6 +50,7 @@ function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
 end
 
 function plasticity!(c::FLSparseSynapse, param::FLSparseSynapseParameter, dt::Float32, t::Float32)
+    @unpack rI, P, q, w, f, z = c
     C = 1 / (1 + dot(q, rI))
     BLAS.axpy!(C * (f - z), q, w)
     @inbounds for j in 1:(length(colptr) - 1)
