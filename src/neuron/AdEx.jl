@@ -47,3 +47,23 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
 		w[i] = ifelse(fire[i], w[i]+b*τw, w[i])
     end
 end
+
+
+W = 10.
+ga = zeros(1000)
+gb = zeros(1000)
+gb1 = zeros(1000)
+
+ga[1] = W
+gb[1] = 1.
+
+dt = 0.01
+for x in 2:1:1000
+	ga[x] = ga[x-1]*exp(-dt)
+	gb[x] = gb[x-1]*exp(-dt)
+	gb1[x] = W*gb[x]
+end
+
+
+plot(ga)
+plot!(gb1)
