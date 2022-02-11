@@ -42,7 +42,15 @@ end
 
 function plasticity!(c::FLSynapse, param::FLSynapseParameter, dt::Float32, t::Float32)
     @unpack rI, P, q, w, f, z = c
+    #
+    # 1 / (1 + rI P rJ) it is not in the paper
     C = 1 / (1 + dot(q, rI))
+
+    # e- = C * (f-z)
+    # w = w + e⁻ * q
     axpy!(C * (f - z), q, w)
+
+    # ger(a,x,y,A = a*x*y' + A.
+    # P = P + - C* q * q' = P - C * P rJ * rI * P
     BLAS.ger!(-C, q, q, P)
 end
