@@ -1,6 +1,3 @@
-C     = 281pF        #(pF)
-gL    = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
-
 @snn_kw struct AdExParameter{FT=Float32} <: AbstractIFParameter
 	τm::FT = C/gL
     τe::FT = 5ms
@@ -36,7 +33,7 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @unpack N, v, w, ge, gi, fire, I, θ = p
     @unpack τm, τe, τi, Vt, Vr, El, R, ΔT, τw, a, b = param
     @inbounds for i = 1:N
-        v[i] += dt * (ge[i] + gi[i] - (v[i] - El) + ΔT*exp((v[i]-θ[i])/ΔT) -R*w[i] + I[i]) / τm
+        v[i] += dt * (ge[i] + gi[i] - (v[i] - El) + ΔT*exp256((v[i]-θ[i])/ΔT) -R*w[i] + I[i]) / τm
 		w[i] += dt * (a*(v[i]-El) -w[i] )/τw
         ge[i] += dt * -ge[i] / τe
         gi[i] += dt * -gi[i] / τi
@@ -47,23 +44,3 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
 		w[i] = ifelse(fire[i], w[i]+b*τw, w[i])
     end
 end
-
-
-W = 10.
-ga = zeros(1000)
-gb = zeros(1000)
-gb1 = zeros(1000)
-
-ga[1] = W
-gb[1] = 1.
-
-dt = 0.01
-for x in 2:1:1000
-	ga[x] = ga[x-1]*exp(-dt)
-	gb[x] = gb[x-1]*exp(-dt)
-	gb1[x] = W*gb[x]
-end
-
-
-plot(ga)
-plot!(gb1)

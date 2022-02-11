@@ -29,13 +29,13 @@ function FLSparseSynapse(pre, post; σ = 1.5, p = 0.0, α = 1, kwargs...)
     rI, rJ, g = post.r, pre.r, post.g
     P = α .* (I .== J)
     q = zeros(post.N)
-    u = 2rand(post.N) - 1
-    w = 1 / √post.N * (2rand(post.N) - 1)
+    u = 2rand(post.N) .- 1
+    w = 1 / √post.N * (2rand(post.N) .- 1)
     FLSparseSynapse(;@symdict(colptr, I, W, rI, rJ, g, P, q, u, w)..., kwargs...)
 end
 
 function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
-    @unpack W, rI, rJ, g, P, q, u, w, f, z = c
+    @unpack W, colptr, I, rI, rJ, g, P, q, u, w, f, z = c
     c.z = dot(w, rI)
     g .= c.z .* u
     fill!(q, zero(Float32))
@@ -50,7 +50,7 @@ function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
 end
 
 function plasticity!(c::FLSparseSynapse, param::FLSparseSynapseParameter, dt::Float32, t::Float32)
-    @unpack rI, P, q, w, f, z = c
+    @unpack rI, colptr, I, P, q, w, f, z = c
     C = 1 / (1 + dot(q, rI))
     BLAS.axpy!(C * (f - z), q, w)
     @inbounds for j in 1:(length(colptr) - 1)

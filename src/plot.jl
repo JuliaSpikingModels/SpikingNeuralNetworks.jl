@@ -13,7 +13,7 @@ function raster(p)
     x, y
 end
 
-function raster(P::Array)
+function raster(P::Array; kwargs...)
     y0 = Int32[0]
     X = Float32[]; Y = Float32[]
     for p in P
@@ -22,10 +22,12 @@ function raster(P::Array)
         append!(Y, y .+ sum(y0))
         push!(y0, p.N)
     end
+    plot!(;kwargs...)
     plt = scatter(X, Y, m = (1, :black), leg = :none,
                   xaxis=("t", (0, Inf)), yaxis = ("neuron",))
     y0 = y0[2:end-1]
     !isempty(y0) && hline!(plt, cumsum(y0), linecolor = :red)
+    plot!(;kwargs...)
     return plt
 end
 
