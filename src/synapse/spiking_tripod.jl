@@ -1,15 +1,17 @@
-@snn_kw struct SpikingSynapseClopath{MFT=Matrix{Float32}, VIT=Vector{Int32},VFT=Vector{Float32},VBT=Vector{Bool}}
-    param::AbstractSynapse
+@snn_kw struct SpikingSynapseTripod{MFT=Matrix{Float32}, VIT=Vector{Int32},VFT=Vector{Float32},VBT=Vector{Bool}}
+	param::Synapse
     rowptr::VIT # row pointer of sparse W
     colptr::VIT # column pointer of sparse W
     I::VIT      # postsynaptic index of W
     J::VIT      # presynaptic index of W
     index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
+
     W::VFT  # synaptic weight
     v_post::VFT
     g::MFT  # rise conductance
-	c_index::VIT # index mapping for receptor conductance in the cell
-    receptors::Vector{Symbol}
+	# target receptors specification
+    receptors::Vector{Tuple{Int64, AbstractReceptor}}
+	# Plasticity variables
     tpre::VFT = zero(W)  # presynaptic spiking time
     tpost::VFT = zero(W) # postsynaptic spiking time
     Apre::VFT = zero(W)  # presynaptic trace
@@ -22,24 +24,40 @@ end
 """
 [Spking Synapse](https://brian2.readthedocs.io/en/2.0b4/resources/tutorials/2-intro-to-brian-synapses.html)
 """
-SpikingSynapseClopath
-
-function SpikingSynapseClopath(pre, post, target::String, receptors::Tuple{Vector{Symbol}, Vector{Int64}}; σ = -1.0, p = 0.0, kwargs...)
+function SynapseTripod(pre, post, target::String, type::String; σ = -1.0, p = 0.0, kwargs...)
+	# Get the parameters for post-synaptic cell
+	@unpack dend_syn = post
+	@unpack soma_syn = post
+	# Create the sparse matrix
     w = σ * sprand(post.N, pre.N, p)
     rowptr, colptr, I, J, index, W = dsparse(w)
     fireI, fireJ = post.fire, pre.fire
+	# Get the target conductance (pointer to array)
     g = getfield(post, Symbol("h_$target"))
     v_post = getfield(post, Symbol("v_$target"))
-	c_index = receptors[2]
-	receptors = receptors[1]
-    SpikingSynapseClopath(;@symdict(rowptr, colptr, I, J, index, W, fireI, fireJ, g,  receptors, c_index, v_post)..., kwargs...)
+
+	if target =="s"
+		param = soma_syn
+		if type =="exc"
+			receptors = [(1, soma_syn.AMPA)]
+		elseif type =="inh"
+			receptors = [(2, soma_syn.GABAa)]
+		end
+	else
+		param = dend_syn
+		if type =="exc"
+			receptors = [(1, dend_syn.AMPA),(2, dend_syn.NMDA)]
+		elseif type =="inh"
+			receptors = [(3, dend_syn.GABAa),(4, dend_syn.GABAb)]
+		end
+	end
+    SpikingSynapseTripod(;@symdict(rowptr, colptr, I, J, index, W,  g,  receptors, v_post, fireI, fireJ, param)..., kwargs...)
 end
 
-function forward!(c::SpikingSynapseClopath, param::AbstractSynapse)
-    @unpack colptr, I, W, fireJ,  g, receptors, c_index = c
+function forward!(c::SpikingSynapseTripod, param::Synapse)
+    @unpack colptr, I, W, fireJ,  g, receptors = c
     #update synapse
-    for (n,rec) in enumerate([getfield(param, r) for r in receptors ])
-		n = c_index[n]
+    for (n,rec) in receptors
         @inbounds for j in 1:(length(colptr) - 1)
             if fireJ[j]
                 for s in colptr[j]:(colptr[j+1] - 1)
