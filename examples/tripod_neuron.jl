@@ -1,19 +1,18 @@
 using Revise
 using SNNUtils
 using Plots
-include("/home/cocconat/Documents/Research/phd_project/models/spiking/SpikingNeuralNetworks.jl/src/SpikingNeuralNetworks.jl")
-using .SpikingNeuralNetworks
+using SpikingNeuralNetworks
 SNN = SpikingNeuralNetworks
 SNN.@load_units
 ##
+##
 # Create vectors of dendritic parameters
+# Set the synapses (this could be done also in the )
 d1 = [SNN.Dendrite(;SNNUtils.create_dendrite(l)...) for l in rand(350:400, 200)]
 d2 = [SNN.Dendrite(;SNNUtils.create_dendrite(l)...) for l in rand(150:300, 200)]
-# Set the synapses (this could be done also in the )
-##
 E = SNN.Tripod(N=1, d1=d1, d2=d2)
 inputs = [
-    SNN.Poisson(N = 100,param=SNN.PoissonParameter(rate=.06)),
+    SNN.Poisson(N = 100,param=SNN.PoissonParameter(rate=.05)),
     SNN.Poisson(N = 100,param=SNN.PoissonParameter(rate=.5))
     ]
 synapses = []
@@ -25,18 +24,7 @@ end
 recurrent =  SpikingNeuralNetworks.SynapseTripod(E, E, "d1", "exc", p=0.2, σ=0.)
 # ##
 SNN.monitor(E, [:v_s, :v_d1,:v_d2, :fire, :h_s, :g_d2, :g_d1, :after_spike])
-# SNN.monitor(E, [
-# 			:i1,
-# 			:i2,
-# 			:is,
-# 			:c1,
-# 			:c2,
-# 			:Δs,
-# 			:Δd1,
-# 			:Δd2,
-# 			])
-SNN.sim!([E,inputs...], [synapses...]; duration = 1500ms)
-
+SNN.sim!([E,inputs...], [synapses...]; duration = 2500ms)
 
 plot(SNN.vecplot(E, :v_s),SNN.vecplot(E, :v_d2), SNN.vecplot(E,:v_d1), layout =(3,1))
 ##

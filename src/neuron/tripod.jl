@@ -83,27 +83,27 @@ end
     Tripod neuron
 """
 function integrate!(p::Tripod, param::AdExTripod, dt::Float32)
-    @unpack N, v_s, w_s, v_d1, v_d2, g_s, g_d1, g_d2, h_s, h_d1, h_d2, d1, d2, fire, θ, after_spike, postspike = p
+    @unpack N, v_s, w_s, v_d1, v_d2, g_s, g_d1, g_d2, h_s, h_d1, h_d2, d1, d2, fire, θ, aft	er_spike, postspike = p
 	dend_receptors = [getfield(p.dend_syn, r) for r in [:AMPA, :NMDA, :GABAa, :GABAb] ]
 	soma_receptors = [getfield(p.soma_syn, r) for r in [:AMPA, :GABAa] ]
 	@unpack Er, up, idle, BAP, AP_membrane, Vr, Vt, τw, a, b = param
 	## Update all synaptic conductance
 	# for dendrites
     for (n,rec) in enumerate(dend_receptors)
-        @unpack gsyn, α, E_rev, τr, τd = rec
+        @unpack gsyn, α, E_rev, τr⁻, τd⁻ = rec
 	    @inbounds @fastmath for i = 1:N
-			g_d1[i,n] = exp32(-dt/τd)*(g_d1[i,n] + dt*h_d1[i,n])
-			h_d1[i,n] = exp32(-dt/τr)*(h_d1[i,n])
-			g_d2[i,n] = exp32(-dt/τd)*(g_d2[i,n] + dt*h_d2[i,n])
-			h_d2[i,n] = exp32(-dt/τr)*(h_d2[i,n])
+			g_d1[i,n] = exp32(-dt*τd⁻)*(g_d1[i,n] + dt*h_d1[i,n])
+			h_d1[i,n] = exp32(-dt*τr⁻)*(h_d1[i,n])
+			g_d2[i,n] = exp32(-dt*τd⁻)*(g_d2[i,n] + dt*h_d2[i,n])
+			h_d2[i,n] = exp32(-dt*τr⁻)*(h_d2[i,n])
 		end
 	end
 	# for soma
     for (n,rec) in enumerate(soma_receptors)
         @unpack gsyn, α, E_rev, τr, τd = rec
 	    @inbounds @fastmath for i = 1:N
-			g_s[i,n] = exp32(-dt/τd)*(g_s[i,n] + dt*h_s[i,n])#),13500)
-			h_s[i,n] = exp32(-dt/τr)*(h_s[i,n])
+			g_s[i,n] = exp32(-dt*τd⁻)*(g_s[i,n] + dt*h_s[i,n])#),13500)
+			h_s[i,n] = exp32(-dt*τr⁻)*(h_s[i,n])
 		end
 	end
 
