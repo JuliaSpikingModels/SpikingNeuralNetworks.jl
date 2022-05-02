@@ -99,7 +99,6 @@ function integrate!(p::Tripod, param::AdExTripod, dt::Float32)
 		end
 	end
 	# for soma
-	#println(soma_receptors)
     for (n,rec) in enumerate(soma_receptors)
         @unpack gsyn, α, E_rev, τr⁻, τd⁻ = rec
 	    @inbounds @fastmath for i = 1:N

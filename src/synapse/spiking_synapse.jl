@@ -28,7 +28,6 @@ end
 [Spking Synapse](https://brian2.readthedocs.io/en/2.0b4/resources/tutorials/2-intro-to-brian-synapses.html)
 """
 SpikingSynapse
-
 function SpikingSynapse(pre, post, sym; w = nothing, σ = 0.0, p = 0.0, kwargs...)
     if w == nothing
         w = σ * sprand(post.N, pre.N, p)
@@ -38,6 +37,7 @@ function SpikingSynapse(pre, post, sym; w = nothing, σ = 0.0, p = 0.0, kwargs..
     g = getfield(post, sym)
     SpikingSynapse(;@symdict(rowptr, colptr, I, J, index, W, fireI, fireJ, g)..., kwargs...)
 end
+
 # function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
 #     w = σ * sprand(post.N, pre.N, p)
 #     rowptr, colptr, I, J, index, W = dsparse(w)
