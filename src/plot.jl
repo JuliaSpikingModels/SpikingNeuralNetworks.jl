@@ -1,23 +1,25 @@
 using .Plots
 # FIXME: using StatsBase
 
-function raster(p)
+function raster(p, interval=nothing)
     fire = p.records[:fire]
     x, y = Float32[], Float32[]
     for t = eachindex(fire)
         for n in findall(fire[t])
-            push!(x, t)
-            push!(y, n)
+            if isnothing(interval) || (t > interval[1] && t < interval[2])
+                push!(x, t)
+                push!(y, n)
+            end
         end
     end
     x, y
 end
 
-function raster(P::Array)
+function raster(P::Array, t=nothing)
     y0 = Int32[0]
     X = Float32[]; Y = Float32[]
     for p in P
-        x, y = raster(p)
+        x, y = raster(p, t)
         append!(X, x)
         append!(Y, y .+ sum(y0))
         push!(y0, p.N)
@@ -26,12 +28,16 @@ function raster(P::Array)
                   xaxis=("t", (0, Inf)), yaxis = ("neuron",))
     y0 = y0[2:end-1]
     !isempty(y0) && hline!(plt, cumsum(y0), linecolor = :red)
+    !isnothing(t) && plot!(xlims=t)
     return plt
 end
 
-function vecplot(p, sym)
+function vecplot(p, sym, r=nothing)
     v = getrecord(p, sym)
     y = hcat(v...)'
+    if !isnothing(r)
+        y = y[:,r]
+    end
     x = 1:length(v)
     plot(x, y, leg = :none,
     xaxis=("t", extrema(x)),
