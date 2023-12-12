@@ -19,7 +19,9 @@ const nA = ampere / 1e9
 const pA = ampere / 1e12
 
 const farad=1e6
+const mF = farad/1e3
 const uF = farad/1e6
+const bF = farad/1e9
 const pF = farad/1e12
 const ufarad = uF
 
@@ -29,14 +31,41 @@ const msiemens = mS
 const nS = siemens / 1e9
 const nsiemens = nS
 
-const Ω = 1/siemens
-const MΩ = Ω*10e6
-const GΩ = Ω*10e6
+const Ω = 1 / siemens
+const MΩ = Ω * 10e6
+const GΩ = Ω * 10e6
 
+@assert second/Ω ==farad
+@assert Ω*siemens ==1
+@assert Ω*ampere == voltage
+@assert ampere*second/voltage == farad
 
 macro load_units()
-    exs = map((:metre, :meter, :cm, :mm, :um, :nm, :second, :ms, :Hz, :voltage, :mV, :ampere,
-        :mA, :uA, :nA, :farad, :uF, :ufarad, :siemens, :mS, :msiemens, :nS, :nsiemens)) do s
+    exs = map((
+        :metre,
+        :meter,
+        :cm,
+        :mm,
+        :um,
+        :nm,
+        :second,
+        :ms,
+        :Hz,
+        :voltage,
+        :mV,
+        :ampere,
+        :mA,
+        :uA,
+        :nA,
+        :farad,
+        :uF,
+        :ufarad,
+        :siemens,
+        :mS,
+        :msiemens,
+        :nS,
+        :nsiemens,
+    )) do s
         :($s = getfield($@__MODULE__, $(QuoteNode(s))))
     end
     ex = Expr(:block, exs...)

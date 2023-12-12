@@ -1,5 +1,9 @@
 
-@snn_kw mutable struct SpikeRateSynapse{VIT=Vector{Int32},VFT=Vector{Float32}, VBT=Vector{Bool}}
+@snn_kw mutable struct SpikeRateSynapse{
+    VIT = Vector{Int32},
+    VFT = Vector{Float32},
+    VBT = Vector{Bool},
+}
     param::RateSynapseParameter = RateSynapseParameter()
     colptr::VIT # column pointer of sparse W
     I::VIT      # postsynaptic index of W
@@ -22,27 +26,32 @@ function SpikeRateSynapse(pre, post; σ = 0.0, p = 0.0, kwargs...)
     w = σ / √(p * pre.N) * sprandn(post.N, pre.N, p)
     rowptr, colptr, I, J, index, W = dsparse(w)
     rI, fireJ, g = post.r, pre.fire, post.g
-    SpikeRateSynapse(;@symdict(colptr, I, W, rI, fireJ, g)..., kwargs...)
+    SpikeRateSynapse(; @symdict(colptr, I, W, rI, fireJ, g)..., kwargs...)
 end
 
 function forward!(c::SpikeRateSynapse, param::RateSynapseParameter)
     @unpack colptr, I, W, rI, fireJ, g = c
     @unpack lr = param
     # fill!(g, zero(eltype(g)))
-    @inbounds for j in 1:(length(colptr) - 1)
+    @inbounds for j = 1:(length(colptr)-1)
         if fireJ[j]
-            for s = colptr[j]:(colptr[j+1] - 1)
+            for s = colptr[j]:(colptr[j+1]-1)
                 g[I[s]] += W[s]
             end
         end
     end
 end
 
-function plasticity!(c::SpikeRateSynapse, param::RateSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(
+    c::SpikeRateSynapse,
+    param::RateSynapseParameter,
+    dt::Float32,
+    t::Float32,
+)
     @unpack colptr, I, W, rI, rJ, g = c
     @unpack lr = param
-    @inbounds for j in 1:(length(colptr) - 1)
-        s_row = colptr[j]:(colptr[j+1] - 1)
+    @inbounds for j = 1:(length(colptr)-1)
+        s_row = colptr[j]:(colptr[j+1]-1)
         rIW = zero(Float32)
         for s in s_row
             rIW += rI[I[s]] * W[s]

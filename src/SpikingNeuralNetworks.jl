@@ -7,6 +7,7 @@ using LinearAlgebra
 using SparseArrays
 using Requires
 using UnPack
+using Random
 
 include("unit.jl")
 include("main.jl")
@@ -30,7 +31,7 @@ include("synapse/pinning_sparse_synapse.jl")
 include("synapse/spike_rate_synapse.jl")
 
 function __init__()
-    @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plot.jl")
+    @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plot.jl")
 end
 
 end

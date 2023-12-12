@@ -1,5 +1,5 @@
 abstract type AbstractIFParameter end
-@snn_kw struct IFParameter{FT=Float32} <: AbstractIFParameter
+@snn_kw struct IFParameter{FT = Float32} <: AbstractIFParameter
     τm::FT = 20ms
     τe::FT = 5ms
     τi::FT = 10ms
@@ -10,7 +10,7 @@ end
 
 abstract type AbstractIF end
 
-@snn_kw mutable struct IF{VFT=Vector{Float32},VBT=Vector{Bool}} <: AbstractIF
+@snn_kw mutable struct IF{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
     param::IFParameter = IFParameter()
     N::Int32 = 100
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)

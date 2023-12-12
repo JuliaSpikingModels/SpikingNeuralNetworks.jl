@@ -14,13 +14,13 @@ function dsparse(A)
     V = nonzeros(A)
     J = zero(I)
     # FIXME: Breaks when A is empty
-    for j in 1:(length(colptr) - 1)
-        J[colptr[j]:(colptr[j+1] - 1)] .= j
+    for j = 1:(length(colptr)-1)
+        J[colptr[j]:(colptr[j+1]-1)] .= j
     end
     index = zeros(size(I))
     coldown = zeros(eltype(index), length(colptr) - 1)
-    for i in 1:(length(rowptr) - 1)
-        for st in rowptr[i]:(rowptr[i+1] - 1)
+    for i = 1:(length(rowptr)-1)
+        for st = rowptr[i]:(rowptr[i+1]-1)
             j = At.rowval[st]
             index[st] = colptr[j] + coldown[j]
             coldown[j] += 1
@@ -34,7 +34,7 @@ function record!(obj)
     for (key, val) in obj.records
         if isa(key, Tuple)
             sym, ind = key
-            push!(val, getindex(getfield(obj, sym),ind))
+            push!(val, getindex(getfield(obj, sym), ind))
         else
             push!(val, copy(getfield(obj, key)))
         end
@@ -61,7 +61,7 @@ end
 
 function getrecord(p, sym)
     key = sym
-    for (k,val) in p.records
+    for (k, val) in p.records
         isa(k, Tuple) && k[1] == sym && (key = k)
     end
     p.records[key]
@@ -74,17 +74,27 @@ function clear_records(obj)
 end
 
 @inline function exp32(x::Float32)
-    x = ifelse(x < -10f0, -32f0, x)
-    x = 1f0 + x / 32f0
-    x *= x; x *= x; x *= x; x *= x; x *= x
+    x = ifelse(x < -10.0f0, -32.0f0, x)
+    x = 1.0f0 + x / 32.0f0
+    x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
     return x
 end
 
 @inline function exp256(x::Float32)
-    x = ifelse(x < -10f0, -256f0, x)
+    x = ifelse(x < -10.0f0, -256.0f0, x)
     x = 1.0f0 + x / 256.0f0
-    x *= x; x *= x; x *= x; x *= x
-    x *= x; x *= x; x *= x; x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
+    x *= x
     return x
 end
 
@@ -144,10 +154,11 @@ function snn_kw_str_sentinels(x)
         return x
     end
 end
-snn_kw_str_sentinel_check(x) =
-    :(if $(x[1]) isa KwStrSentinel
+snn_kw_str_sentinel_check(x) = :(
+    if $(x[1]) isa KwStrSentinel
         $(x[1]) = $(length(x) > 1 ? x[2] : Any)
-    end)
+    end
+)
 "A minimal implementation of `Base.@kwdef` with default type parameter support"
 macro snn_kw(str)
     str_abs = nothing
@@ -167,13 +178,13 @@ macro snn_kw(str)
     end
     @assert str_name isa Symbol
     @assert str_abs isa Union{Symbol,Nothing}
-    str_fields = map(snn_kw_str_field, filter(x->!(x isa LineNumberNode),
-                                          str.args[3].args))
+    str_fields =
+        map(snn_kw_str_field, filter(x -> !(x isa LineNumberNode), str.args[3].args))
 
     # Remove default type params
     if length(str_params) > 0
         idx = 1
-        for idx in 2:length(str.args[2].args)
+        for idx = 2:length(str.args[2].args)
             param = str_params[idx-1]
             if length(param) == 1
                 str.args[2].args[idx] = param[1]
@@ -186,7 +197,7 @@ macro snn_kw(str)
     # Remove default field values
     idx = 1
     subidx = 1
-    for idx in 1:length(str.args[3].args)
+    for idx = 1:length(str.args[3].args)
         if !(str.args[3].args[idx] isa LineNumberNode)
             field = str_fields[subidx]
             if length(field) == 1
@@ -208,18 +219,19 @@ macro snn_kw(str)
     ctor_params_bodies = snn_kw_str_sentinel_check.(str_params)
 
     # Constructor accepts field values and type params as kwargs
-    ctor_kws = Expr(:parameters,
-                    map(snn_kw_str_kws, str_fields)...,
-                    map(snn_kw_str_kws_types, ctor_params)...)
+    ctor_kws = Expr(
+        :parameters,
+        map(snn_kw_str_kws, str_fields)...,
+        map(snn_kw_str_kws_types, ctor_params)...,
+    )
     ctor_sig = Expr(:call, str_name, ctor_kws)
     ctor_call = if length(str_params) > 0
         Expr(:curly, str_name, first.(str_params)...)
     else
         str_name
     end
-    ctor_body = Expr(:block,
-                     ctor_params_bodies...,
-                     Expr(:call, ctor_call, first.(str_fields)...))
+    ctor_body =
+        Expr(:block, ctor_params_bodies..., Expr(:call, ctor_call, first.(str_fields)...))
     ctor = Expr(:function, ctor_sig, ctor_body)
 
     return quote

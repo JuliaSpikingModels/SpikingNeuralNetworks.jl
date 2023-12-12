@@ -1,7 +1,6 @@
-struct PINningSynapseParameter
-end
+struct PINningSynapseParameter end
 
-@snn_kw mutable struct PINningSynapse{MFT=Matrix{Float32},VFT=Vector{Float32}}
+@snn_kw mutable struct PINningSynapse{MFT = Matrix{Float32},VFT = Vector{Float32}}
     param::PINningSynapseParameter = PINningSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -23,7 +22,7 @@ function PINningSynapse(pre, post; σ = 1.5, p = 0.0, α = 1, kwargs...)
     W = σ * 1 / √pre.N * randn(post.N, pre.N) # normalized recurrent weight
     P = α * I(post.N) # initial inverse of C = <rr'>
     f, q = zeros(post.N), zeros(post.N)
-    PINningSynapse(;@symdict(W, rI, rJ, g, P, q, f)..., kwargs...)
+    PINningSynapse(; @symdict(W, rI, rJ, g, P, q, f)..., kwargs...)
 end
 
 function forward!(c::PINningSynapse, param::PINningSynapseParameter)
@@ -32,7 +31,12 @@ function forward!(c::PINningSynapse, param::PINningSynapseParameter)
     mul!(g, W, rJ)
 end
 
-function plasticity!(c::PINningSynapse, param::PINningSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(
+    c::PINningSynapse,
+    param::PINningSynapseParameter,
+    dt::Float32,
+    t::Float32,
+)
     @unpack W, rI, g, P, q, f = c
     C = 1 / (1 + dot(q, rI))
     BLAS.ger!(C, f - g, q, W)
