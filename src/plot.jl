@@ -1,10 +1,10 @@
 using .Plots
 # FIXME: using StatsBase
 
-function raster(p, interval=nothing)
+function raster(p, interval = nothing)
     fire = p.records[:fire]
     x, y = Float32[], Float32[]
-    for t = eachindex(fire)
+    for t in eachindex(fire)
         for n in findall(fire[t])
             if isnothing(interval) || (t > interval[1] && t < interval[2])
                 push!(x, t)
@@ -15,33 +15,38 @@ function raster(p, interval=nothing)
     x, y
 end
 
-function raster(P::Array, t=nothing)
+function raster(P::Array, t = nothing)
     y0 = Int32[0]
-    X = Float32[]; Y = Float32[]
+    X = Float32[]
+    Y = Float32[]
     for p in P
         x, y = raster(p, t)
         append!(X, x)
         append!(Y, y .+ sum(y0))
         push!(y0, p.N)
     end
-    plt = scatter(X, Y, m = (1, :black), leg = :none,
-                  xaxis=("t", (0, Inf)), yaxis = ("neuron",))
+    plt = scatter(
+        X,
+        Y,
+        m = (1, :black),
+        leg = :none,
+        xaxis = ("t", (0, Inf)),
+        yaxis = ("neuron",),
+    )
     y0 = y0[2:end-1]
     !isempty(y0) && hline!(plt, cumsum(y0), linecolor = :red)
-    !isnothing(t) && plot!(xlims=t)
+    !isnothing(t) && plot!(xlims = t)
     return plt
 end
 
-function vecplot(p, sym, r=nothing)
+function vecplot(p, sym, r = nothing)
     v = getrecord(p, sym)
     y = hcat(v...)'
     if !isnothing(r)
-        y = y[:,r]
+        y = y[:, r]
     end
     x = 1:length(v)
-    plot(x, y, leg = :none,
-    xaxis=("t", extrema(x)),
-    yaxis=(string(sym), extrema(y)))
+    plot(x, y, leg = :none, xaxis = ("t", extrema(x)), yaxis = (string(sym), extrema(y)))
 end
 
 function vecplot(P::Array, sym)
@@ -94,14 +99,14 @@ end
 function activity(P::Array)
     A = activity.(P)
     t = 1:length(P[1].records[:fire])
-    plot(t, A, leg=:none, xaxis=("t",), yaxis=("A", (0, Inf)))
+    plot(t, A, leg = :none, xaxis = ("t",), yaxis = ("A", (0, Inf)))
 end
 
 function if_curve(model, current; neuron = 1, dt = 0.1ms, duration = 1second)
     E = model(neuron)
     monitor(E, [:fire])
     f = Float32[]
-    for I = current
+    for I in current
         clear_records(E)
         E.I = [I]
         SNN.sim!([E], []; dt = dt, duration = duration)

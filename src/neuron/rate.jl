@@ -1,7 +1,6 @@
-struct RateParameter
-end
+struct RateParameter end
 
-@snn_kw mutable struct Rate{VFT=Vector{Float32}}
+@snn_kw mutable struct Rate{VFT = Vector{Float32}}
     param::RateParameter = RateParameter()
     N::Int32 = 100
     x::VFT = 0.5randn(N)

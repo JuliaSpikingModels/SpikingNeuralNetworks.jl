@@ -3,7 +3,7 @@ using Test
 SNN.@load_units
 
 if VERSION > v"1.1"
-include("ctors.jl")
+    include("ctors.jl")
 end
 include("chain.jl")
 include("hh_net.jl")

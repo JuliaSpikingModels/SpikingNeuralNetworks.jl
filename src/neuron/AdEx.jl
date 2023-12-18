@@ -1,5 +1,5 @@
-C     = 281pF        #(pF)
-gL    = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
+C = 281pF        #(pF)
+gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 
 @snn_kw struct AdExParameter{FT=Float32} <: AbstractIFParameter
 	τm::FT = C/gL # Membrane time constant
@@ -15,7 +15,7 @@ gL    = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 	b::FT = 80.5nA # Spike-triggered adaptation parameter (amount by which the voltage is increased at each threshold crossing)
 end
 
-@snn_kw mutable struct AdEx{VFT=Vector{Float32},VBT=Vector{Bool}} <: AbstractIF
+@snn_kw mutable struct AdEx{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
     param::AdExParameter = AdExParameter()
     N::Int32 = 100 # Number of time steps / time window
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
@@ -38,7 +38,7 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @inbounds for i = 1:N
 
         # Membrane potential
-        v[i] += dt * (ge[i] + gi[i] - (v[i] - El) + ΔT*exp((v[i]-θ[i])/ΔT) -R*w[i] + I[i]) / τm
+        v[i] += dt * 1/τm * (R*(ge[i] + gi[i]) - (v[i] - El) + ΔT * exp((v[i] - θ[i]) / ΔT) - R * w[i] + I[i])
         # mV = mV + ms * (nS + nS - (mV - mV) + mV * exp((mV - mV)/mV) - 1/nS * pA + pA) / ms
         # v: mV
         # dt: ms
@@ -68,3 +68,5 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         # b: pA
     end
 end
+
+# function spike_count(p::AdEx)

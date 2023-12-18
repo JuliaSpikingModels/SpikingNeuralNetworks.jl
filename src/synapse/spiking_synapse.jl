@@ -1,4 +1,4 @@
-@snn_kw struct SpikingSynapseParameter{FT=Float32}
+@snn_kw struct SpikingSynapseParameter{FT = Float32}
     τpre::FT = 20ms
     τpost::FT = 20ms
     Wmax::FT = 0.01
@@ -6,7 +6,11 @@
     ΔApost::FT = -ΔApre * τpre / τpost * 1.05
 end
 
-@snn_kw mutable struct SpikingSynapse{VIT=Vector{Int32},VFT=Vector{Float32},VBT=Vector{Bool}}
+@snn_kw mutable struct SpikingSynapse{
+    VIT = Vector{Int32},
+    VFT = Vector{Float32},
+    VBT = Vector{Bool},
+}
     param::SpikingSynapseParameter = SpikingSynapseParameter()
     rowptr::VIT # row pointer of sparse W
     colptr::VIT # column pointer of sparse W
@@ -34,43 +38,51 @@ function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
     rowptr, colptr, I, J, index, W = dsparse(w)
     fireI, fireJ = post.fire, pre.fire
     g = getfield(post, sym)
-    SpikingSynapse(;@symdict(rowptr, colptr, I, J, index, W, fireI, fireJ, g)..., kwargs...)
+    SpikingSynapse(;
+        @symdict(rowptr, colptr, I, J, index, W, fireI, fireJ, g)...,
+        kwargs...,
+    )
 end
 
 function forward!(c::SpikingSynapse, param::SpikingSynapseParameter)
     @unpack colptr, I, W, fireJ, g = c
-    @inbounds for j in 1:(length(colptr) - 1)
+    @inbounds for j = 1:(length(colptr)-1)
         if fireJ[j]
-            for s in colptr[j]:(colptr[j+1] - 1)
+            for s = colptr[j]:(colptr[j+1]-1)
                 g[I[s]] += W[s]
             end
         end
     end
 end
 
-function plasticity!(c::SpikingSynapse, param::SpikingSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(
+    c::SpikingSynapse,
+    param::SpikingSynapseParameter,
+    dt::Float32,
+    t::Float32,
+)
     @unpack rowptr, colptr, I, J, index, W, tpre, tpost, Apre, Apost, fireI, fireJ, g = c
     @unpack τpre, τpost, Wmax, ΔApre, ΔApost = param
-    @inbounds for j in 1:(length(colptr) - 1)
+    @inbounds for j = 1:(length(colptr)-1)
         if fireJ[j]
-            for s in colptr[j]:(colptr[j+1] - 1)
-                Apre[s] *= exp32(- (t - tpre[s]) / τpre)
-                Apost[s] *= exp32(- (t - tpost[s]) / τpost)
+            for s = colptr[j]:(colptr[j+1]-1)
+                Apre[s] *= exp32(-(t - tpre[s]) / τpre)
+                Apost[s] *= exp32(-(t - tpost[s]) / τpost)
                 Apre[s] += ΔApre
                 tpre[s] = t
-                W[s] = clamp(W[s] + Apost[s], 0f0, Wmax)
+                W[s] = clamp(W[s] + Apost[s], 0.0f0, Wmax)
             end
         end
     end
-    @inbounds for i in 1:(length(rowptr) - 1)
+    @inbounds for i = 1:(length(rowptr)-1)
         if fireI[i]
-            for st in rowptr[i]:(rowptr[i+1] - 1)
+            for st = rowptr[i]:(rowptr[i+1]-1)
                 s = index[st]
-                Apre[s] *= exp32(- (t - tpre[s]) / τpre)
-                Apost[s] *= exp32(- (t - tpost[s]) / τpost)
+                Apre[s] *= exp32(-(t - tpre[s]) / τpre)
+                Apost[s] *= exp32(-(t - tpost[s]) / τpost)
                 Apost[s] += ΔApost
                 tpost[s] = t
-                W[s] = clamp(W[s] + Apre[s], 0f0, Wmax)
+                W[s] = clamp(W[s] + Apre[s], 0.0f0, Wmax)
             end
         end
     end
