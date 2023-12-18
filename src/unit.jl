@@ -18,11 +18,11 @@ const uA = ampere / 1e6
 const nA = ampere / 1e9
 const pA = ampere / 1e12
 
-const farad=1e6
-const mF = farad/1e3
-const uF = farad/1e6
-const bF = farad/1e9
-const pF = farad/1e12
+const farad = 1e6
+const mF = farad / 1e3
+const uF = farad / 1e6
+const bF = farad / 1e9
+const pF = farad / 1e12
 const ufarad = uF
 
 const siemens = 1e3
@@ -35,10 +35,10 @@ const Ω = 1 / siemens
 const MΩ = Ω * 10e6
 const GΩ = Ω * 10e6
 
-@assert second/Ω ==farad
-@assert Ω*siemens ==1
-@assert Ω*ampere == voltage
-@assert ampere*second/voltage == farad
+@assert second / Ω == farad
+@assert Ω * siemens == 1
+@assert Ω * ampere == voltage
+@assert ampere * second / voltage == farad
 
 macro load_units()
     exs = map((
