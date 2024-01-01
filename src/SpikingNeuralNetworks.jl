@@ -1,5 +1,6 @@
 module SpikingNeuralNetworks
 
+
 SNN = SpikingNeuralNetworks
 export SNN
 
@@ -7,6 +8,8 @@ using LinearAlgebra
 using SparseArrays
 using Requires
 using UnPack
+using Random
+
 
 include("unit.jl")
 include("main.jl")

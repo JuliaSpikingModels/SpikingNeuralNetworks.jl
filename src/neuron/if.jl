@@ -1,4 +1,5 @@
 abstract type AbstractIFParameter end
+
 @snn_kw struct IFParameter{FT=Float32} <: AbstractIFParameter
     τm::FT = 20ms
     τe::FT = 5ms
@@ -11,7 +12,7 @@ end
 abstract type AbstractIF end
 
 @snn_kw mutable struct IF{VFT=Vector{Float32},VBT=Vector{Bool}} <: AbstractIF
-    param::IFParameter = IFParameter()
+    param::IFParameter = IFParameter() #TODO: why is this defined like this?
     N::Int32 = 100
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     ge::VFT = zeros(N)
@@ -24,7 +25,7 @@ end
 """
     [Integrate-And-Fire Neuron](https://neuronaldynamics.epfl.ch/online/Ch1.S3.html)
 """
-IF
+IF #TODO: why is this here?
 
 function integrate!(p::IF, param::IFParameter, dt::Float32)
     @unpack N, v, ge, gi, fire, I = p

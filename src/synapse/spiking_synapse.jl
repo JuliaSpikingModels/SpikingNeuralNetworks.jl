@@ -27,7 +27,7 @@ end
 """
 [Spking Synapse](https://brian2.readthedocs.io/en/2.0b4/resources/tutorials/2-intro-to-brian-synapses.html)
 """
-SpikingSynapse
+SpikingSynapse 
 
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
     w = σ * sprand(post.N, pre.N, p)

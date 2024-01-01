@@ -1,6 +1,6 @@
 function sim!(P, C, dt)
-    for p in P
-        integrate!(p, p.param, Float32(dt))
+    for p in P # for all the neurons in the population
+        integrate!(p, p.param, Float32(dt)) 
         record!(p)
     end
     for c in C
