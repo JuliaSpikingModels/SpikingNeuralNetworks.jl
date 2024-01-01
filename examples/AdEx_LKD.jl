@@ -31,8 +31,8 @@ C = 300SNN.pF
 
 Input_E = SNN.Poisson(; N = N, param = SNN.PoissonParameter(; rate = νe))
 Input_I = SNN.Poisson(; N = N, param = SNN.PoissonParameter(; rate = νi))
-E = SNN.AdEx(; N = 2000, param = LKD_AdEx_exc)
-I = SNN.AdEx(; N = 500, param = LKD_AdEx_inh)
+E = SNN.AdEx(; N = 4000, param = LKD_AdEx_exc)
+I = SNN.AdEx(; N = 1000, param = LKD_AdEx_inh)
 
 EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2)
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)

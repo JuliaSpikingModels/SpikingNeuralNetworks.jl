@@ -34,10 +34,17 @@ end
 SpikingSynapse
 
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
-    w = σ * sprand(post.N, pre.N, p)
-    rowptr, colptr, I, J, index, W = dsparse(w)
+    w = σ * sprand(post.N, pre.N, p) # construct a random sparse vector with length post.N, pre.N and density p
+    rowptr, colptr, I, J, index, W = dsparse(w) 
+    # rowptr: row pointer
+    # colptr: column pointer
+    # I: postsynaptic index of W
+    # J: presynaptic index of W
     fireI, fireJ = post.fire, pre.fire
+    # fireI: Stored spikes postsynaptic neuron
+    # fireJ: Stored spikes presynaptic neuron
     g = getfield(post, sym)
+    # g: get variable with symbol sym
     SpikingSynapse(;
         @symdict(rowptr, colptr, I, J, index, W, fireI, fireJ, g)...,
         kwargs...,
