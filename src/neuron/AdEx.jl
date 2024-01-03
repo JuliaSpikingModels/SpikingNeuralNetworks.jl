@@ -13,6 +13,10 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     τw::FT = 144ms # Adaptation time constant (Spike-triggered adaptation time scale)
     a::FT = 4nS # Subthreshold adaptation parameter
     b::FT = 80.5nA # Spike-triggered adaptation parameter (amount by which the voltage is increased at each threshold crossing)
+    τre::FT = 1ms # Rise time for excitatory synapses
+    τde::FT = 6ms # Decay time for excitatory synapses
+    τri::FT = 0.5ms # Rise time for inhibitory synapses # TODO: why does he use -?
+    τdi::FT = 2ms # Decay time for inhibitory synapses
 end
 
 @snn_kw mutable struct AdEx{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
@@ -26,6 +30,8 @@ end
     θ::VFT = ones(N) * param.Vt # Array with membrane potential thresholds
     I::VFT = zeros(N) # Current
     records::Dict = Dict()
+    he::Vector{Float64}= zeros(N)
+    hi::Vector{Float64} = zeros(N)
 end
 
 """
@@ -33,8 +39,8 @@ end
 """
 
 function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
-    @unpack N, v, w, ge, gi, fire, I, θ = p
-    @unpack τm, τe, τi, Vt, Vr, El, R, ΔT, τw, a, b = param
+    @unpack N, v, w, ge, gi, fire, I, θ, records, he, hi = p
+    @unpack τm, τe, τi, Vt, Vr, El, R, ΔT, τw, a, b, τre, τde, τri, τdi = param
     @inbounds for i ∈ 1:N
 
         # Membrane potential
@@ -62,8 +68,24 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         # a: nS
 
         # Conductance-based synapse model: uses the dynamics of the ion channels on the membrane of the post-synaptic neuron to describe the synapse
-        ge[i] += dt * -ge[i] / τe # Excitatory synapse
-        gi[i] += dt * -gi[i] / τi # Inhibitory synapse
+
+        # Single exponential
+        # ge[i] += dt * -ge[i] / τe # Excitatory synapse
+        # gi[i] += dt * -gi[i] / τi # Inhibitory synapse
+
+        # Double exponential version 1
+        ge[i] += - dt * ge[i] / τde + he[i]
+        he[i] += - dt * he[i] / τre
+
+        gi[i] += - dt * gi[i] / τdi + hi[i]
+        hi[i] += - dt * hi[i] / τri
+
+        # Double exponential version 2
+        # ge[i] = exp32(-dt*τd⁻)*(ge[i] + dt*he[i])
+        # he[i] = exp32(-dt*τr⁻)*(he[i])
+
+        # gi[i] = exp32(-dt*τd⁻)*(gi[i] + dt*hi[i])
+        # hi[i] = exp32(-dt*τr⁻)*(hi[i])
     end
     @inbounds for i ∈ 1:N
         fire[i] = v[i] > 0.0
