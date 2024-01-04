@@ -3,8 +3,8 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 
 @snn_kw struct AdExParameter{FT = Float32} <: AbstractIFParameter
     τm::FT = C / gL # Membrane time constant
-    τe::FT = 5ms # Time constant excitatory synapse
-    τi::FT = 10ms # Time constant inhibitory synapse
+    # τe::FT = 5ms # Time constant excitatory synapse
+    # τi::FT = 10ms # Time constant inhibitory synapse
     Vt::FT = -50mV # Membrane potential threshold
     Vr::FT = -70.6mV # Reset potential
     El::FT = Vr # Resting membrane potential 
@@ -17,11 +17,14 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     τde::FT = 6ms # Decay time for excitatory synapses
     τri::FT = 0.5ms # Rise time for inhibitory synapses # TODO: why does he use -?
     τdi::FT = 2ms # Decay time for inhibitory synapses
+    At::FT = 10mV # Post spike threshold increase
+    τT::FT = 30ms # Adaptive threshold time scale
+    E::FT = 0mV # Reversal potential
 end
 
 @snn_kw mutable struct AdEx{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
     param::AdExParameter = AdExParameter()
-    N::Int32 = 100 # Number of time steps / time window
+    N::Int32 = 100 # Number of neurons
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     w::VFT = zeros(N) # Adaptation current
     ge::VFT = zeros(N) # Time-dependent conductivity that opens whenever a presynaptic excitatory spike arrives
@@ -30,7 +33,7 @@ end
     θ::VFT = ones(N) * param.Vt # Array with membrane potential thresholds
     I::VFT = zeros(N) # Current
     records::Dict = Dict()
-    he::Vector{Float64}= zeros(N)
+    he::Vector{Float64} = zeros(N)
     hi::Vector{Float64} = zeros(N)
 end
 
@@ -40,15 +43,16 @@ end
 
 function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @unpack N, v, w, ge, gi, fire, I, θ, records, he, hi = p
-    @unpack τm, τe, τi, Vt, Vr, El, R, ΔT, τw, a, b, τre, τde, τri, τdi = param
+    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τre, τde, τri, τdi, At, τT, E = param
     @inbounds for i ∈ 1:N
 
         # Membrane potential
         v[i] +=
             dt * 1 / τm * (
-                R * (ge[i] + gi[i]) - (v[i] - El) + ΔT * exp((v[i] - θ[i]) / ΔT) -
+                R * (ge[i] + gi[i]) * (E - v[i]) - (El - v[i]) + ΔT * exp((v[i] - θ[i]) / ΔT) -
                 R * w[i] + I[i]
-            )
+            ) 
+
         # mV = mV + ms * (nS + nS - (mV - mV) + mV * exp((mV - mV)/mV) - 1/nS * pA + pA) / ms
         # v: mV
         # dt: ms
@@ -80,15 +84,22 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         gi[i] += - dt * gi[i] / τdi + hi[i]
         hi[i] += - dt * hi[i] / τri
 
+        θ[i] += dt * (Vt - θ[i]) / τT
         # Double exponential version 2
         # ge[i] = exp32(-dt*τd⁻)*(ge[i] + dt*he[i])
         # he[i] = exp32(-dt*τr⁻)*(he[i])
 
         # gi[i] = exp32(-dt*τd⁻)*(gi[i] + dt*hi[i])
         # hi[i] = exp32(-dt*τr⁻)*(hi[i])
+
     end
-    @inbounds for i ∈ 1:N
+    @inbounds for i ∈ 1:N # TODO: why separate? don't we need to check if there is a spike in the previous loop
+        # to update correctly v and vt?
+
+        # println("threshold ", v[i], " ", vt[i])
         fire[i] = v[i] > 0.0
+    
+        θ[i] = ifelse(fire[i], θ[i] + At, θ[i]) 
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b * τw, w[i]) # if there is a spike, increase adaptation current by an amount of b
         # b: pA

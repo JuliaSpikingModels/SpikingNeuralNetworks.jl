@@ -34,8 +34,8 @@ end
 SpikingSynapse
 
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
-    w = σ * sprand(post.N, pre.N, p) # construct a random sparse vector with length post.N, pre.N and density p
-    rowptr, colptr, I, J, index, W = dsparse(w) 
+    w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
+    rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
     # I: postsynaptic index of W

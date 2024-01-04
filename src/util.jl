@@ -7,27 +7,29 @@ function connect!(c, j, i, σ = 1e-6)
 end
 
 function dsparse(A)
-    At = sparse(A')
-    colptr = A.colptr
-    rowptr = At.colptr
-    I = rowvals(A)
-    V = nonzeros(A)
-    J = zero(I)
+    # Sparse arrays are arrays that contain enough zeros that storing 
+    # them in a special data structure leads to savings in space and execution time, compared to dense arrays.
+    At = sparse(A') # Transposes the input sparse matrix A and stores it as At.
+    colptr = A.colptr # Retrieves the column pointer array from matrix A
+    rowptr = At.colptr # Retrieves the column pointer array from the transposed matrix At
+    I = rowvals(A) # Retrieves the row indices of non-zero elements from matrix A
+    V = nonzeros(A) # Retrieves the values of non-zero elements from matrix A
+    J = zero(I) # Initializes an array J of the same size as I filled with zeros.
     # FIXME: Breaks when A is empty
-    for j = 1:(length(colptr)-1)
-        J[colptr[j]:(colptr[j+1]-1)] .= j
-    end
-    index = zeros(size(I))
-    coldown = zeros(eltype(index), length(colptr) - 1)
-    for i = 1:(length(rowptr)-1)
-        for st = rowptr[i]:(rowptr[i+1]-1)
-            j = At.rowval[st]
-            index[st] = colptr[j] + coldown[j]
-            coldown[j] += 1
+    for j = 1:(length(colptr)-1) # Starts a loop iterating through the columns of the matrix.
+        J[colptr[j]:(colptr[j+1]-1)] .= j # Assigns column indices to J for each element in the column range.
+    end 
+    index = zeros(size(I)) # Initializes an array index of the same size as I filled with zeros.
+    coldown = zeros(eltype(index), length(colptr) - 1) # Initializes an array coldown with a specific type and size.
+    for i = 1:(length(rowptr)-1) # Iterates through the rows of the transposed matrix At.
+        for st = rowptr[i]:(rowptr[i+1]-1) # Iterates through the range of elements in the current row.
+            j = At.rowval[st] # Retrieves the column index from the transposed matrix At.
+            index[st] = colptr[j] + coldown[j] # Computes an index for the index array.
+            coldown[j] += 1 # Updates coldown for indexing.
         end
     end
     # Test.@test At.nzval == A.nzval[index]
-    rowptr, colptr, I, J, index, V
+    rowptr, colptr, I, J, index, V # Returns the modified rowptr, colptr, I, J, index, and V arrays.
 end
 
 function record!(obj)
