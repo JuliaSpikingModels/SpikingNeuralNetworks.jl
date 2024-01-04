@@ -8,7 +8,8 @@ abstract type AbstractIFParameter end
     τde::FT = 6ms # Decay time for excitatory synapses
     τri::FT = 0.5ms # Rise time for inhibitory synapses
     τdi::FT = 2ms # Decay time for inhibitory synapses
-    E::FT = -75mV # Reversal potential
+    E_i::FT = -75mV # Reversal potential
+    E_e::FT = 0mV # Reversal potential
 end
 
 abstract type AbstractIF end
@@ -33,9 +34,9 @@ IF
 
 function integrate!(p::IF, param::IFParameter, dt::Float32)
     @unpack N, v, ge, gi, fire, I, records, he, hi = p
-    @unpack τm, Vt, Vr, El, τre, τde, τri, τdi, E = param
+    @unpack τm, Vt, Vr, El, τre, τde, τri, τdi, E_i, E_e = param
     @inbounds for i = 1:N
-        v[i] += dt * ((ge[i] + gi[i]) * (E - v[i]) - (El - v[i]) + I[i]) / τm # TODO: add reversal potential?
+        v[i] += dt * ((ge[i] *(E_e - v[i])+ gi[i]*((E_i - v[i])))  - (El - v[i]) + I[i]) / τm 
         # ge[i] += dt * -ge[i] / τe
         # gi[i] += dt * -gi[i] / τi
 
