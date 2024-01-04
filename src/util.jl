@@ -6,6 +6,8 @@ function connect!(c, j, i, σ = 1e-6)
     return nothing
 end
 
+
+
 function dsparse(A)
     # Sparse arrays are arrays that contain enough zeros that storing 
     # them in a special data structure leads to savings in space and execution time, compared to dense arrays.

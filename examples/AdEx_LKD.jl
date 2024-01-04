@@ -44,10 +44,12 @@ E = SNN.AdEx(; N = 4000, param = LKD_AdEx_exc)
 # I = SNN.AdEx(; N = 1000, param = LKD_AdEx_inh)
 I = SNN.IF(; N = 1000, param = LKD_IF_inh)
 
-EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2)
+EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter())
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
-IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2)
+# ! Implement iSTDP
+# ! IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter()) 
 II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
+
 ProjE = SNN.SpikingSynapse(Input_E, E, :ge; σ = σ_in_E, p = p_in)
 ProjI = SNN.SpikingSynapse(Input_I, I, :ge; σ = σ_in_E, p = p_in)
 
@@ -62,10 +64,22 @@ SNN.monitor([E, I], [:fire])
 debuglogger = ConsoleLogger(stderr, Logging.Debug)
 with_logger(debuglogger) do
     @debug "Start the simulation"
-    SNN.sim!(P, C; duration = 1second)
+    # SNN.sim!(P, C; duration = 1second)
+    SNN.train!(P, C; duration = 1second)
 end
 ##
 bar(sum(hcat(E.records[:fire]...) ./ 1, dims = 2)[:, 1])
 # SNN.raster([E, I], [9, 11] .* 10e3)
 SNN.raster([E, I], [0, 1] .* 10e3)
     
+
+##
+w = σEE * SNN.sprand(E.N, E.N, 0.2) # Construct a random sparse vector with length post.N, pre.N and density p
+w[findall(w.>0)] .=σEE
+
+rowptr, colptr, I, J, index, W = SNN.dsparse(w) # Get info about the existing connections
+rowptr
+colptr
+I
+J
+
