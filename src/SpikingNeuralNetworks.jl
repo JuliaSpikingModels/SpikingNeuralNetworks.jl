@@ -8,6 +8,7 @@ using SparseArrays
 using Requires
 using UnPack
 using Random
+using Logging
 
 include("unit.jl")
 include("main.jl")
