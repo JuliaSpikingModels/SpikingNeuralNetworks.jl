@@ -21,7 +21,7 @@ function dsparse(A)
     for j = 1:(length(colptr)-1) # Starts a loop iterating through the columns of the matrix.
         J[colptr[j]:(colptr[j+1]-1)] .= j # Assigns column indices to J for each element in the column range.
     end 
-    index = zeros(size(I)) # Initializes an array index of the same size as I filled with zeros.
+    index = zeros(Int,size(I)) # Initializes an array index of the same size as I filled with zeros.
     coldown = zeros(eltype(index), length(colptr) - 1) # Initializes an array coldown with a specific type and size.
     for i = 1:(length(rowptr)-1) # Iterates through the rows of the transposed matrix At.
         for st = rowptr[i]:(rowptr[i+1]-1) # Iterates through the range of elements in the current row.
