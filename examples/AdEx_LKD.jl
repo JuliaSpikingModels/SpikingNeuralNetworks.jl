@@ -27,9 +27,8 @@ LKD_IF_inh =
 # inputs, the kHz is obtained by the N*ν, so doing the spikes (read eqs. 4 section)
 N = 1000
 νe = 4.5Hz # Rate of external input to E neurons
-νi = 2.25Hz # Rate of external input to I neurons
+νi = 1.25Hz # Rate of external input to I neurons
 p_in = 1.0 # 0.5 
-
 σ_in_E = 1.78SNN.pF
 
 σEE = 2.76SNN.pF # Initial E to E synaptic weight
@@ -46,8 +45,7 @@ I = SNN.IF(; N = 1000, param = LKD_IF_inh)
 
 EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter())
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
-# ! Implement iSTDP
-# ! IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter()) 
+IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2)#, param=SNN.iSTDPParameter()) 
 II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
 
 ProjE = SNN.SpikingSynapse(Input_E, E, :ge; σ = σ_in_E, p = p_in)
@@ -67,19 +65,8 @@ with_logger(debuglogger) do
     # SNN.sim!(P, C; duration = 1second)
     SNN.train!(P, C; duration = 1second)
 end
-##
-bar(sum(hcat(E.records[:fire]...) ./ 1, dims = 2)[:, 1])
+# ##
+# bar(sum(hcat(E.records[:fire]...) ./ 1, dims = 2)[:, 1])
 # SNN.raster([E, I], [9, 11] .* 10e3)
 SNN.raster([E, I], [0, 1] .* 10e3)
     
-
-##
-w = σEE * SNN.sprand(E.N, E.N, 0.2) # Construct a random sparse vector with length post.N, pre.N and density p
-w[findall(w.>0)] .=σEE
-
-rowptr, colptr, I, J, index, W = SNN.dsparse(w) # Get info about the existing connections
-rowptr
-colptr
-I
-J
-
