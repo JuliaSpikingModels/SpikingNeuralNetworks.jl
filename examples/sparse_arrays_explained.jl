@@ -5,6 +5,11 @@ w = SNN.sprand(10, 10, 0.2) # Construct a random sparse vector with length post.
 w[findall(w.!=0)] .=1
 rowptr, colptr, I, J, index, W = SNN.dsparse(w) # Get info about the existing connections
 
+println(size(W))
+println(size(zero(W)))
+println(size(colptr[1]:colptr[1+1]-1 ))
+println(size(1:(length(colptr)-1)))
+
 #select a pre-synaptic neuron
 j = 1
 ## check if it spiked or continue
