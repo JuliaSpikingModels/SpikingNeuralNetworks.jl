@@ -105,9 +105,9 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @inbounds for i ∈ 1:N # TODO: why separate? don't we need to check if there is a spike in the previous loop
         # to update correctly v and vt?
 
-        if i ==333 
-            @debug v[i], θ[i]
-        end
+        # if i ==333 
+        #     @debug v[i], θ[i]
+        # end
 
         fire[i] = v[i] > 0.0
     

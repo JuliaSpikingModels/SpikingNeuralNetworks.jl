@@ -82,10 +82,11 @@ end
     J::VIT      # presynaptic index of W
     index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
     W::VFT  # synaptic weight
-    u::VFT = zero(W) # presynaptic spiking time
-    v::VFT = zero(W) # postsynaptic spiking time
-    x::VFT = zero(W) # postsynaptic spiking time
-    vpost::VFT = zero(W)
+    W0::VFT = deepcopy(W)
+    u::VFT = zeros(length(colptr)) # presynaptic spiking time
+    v::VFT = zeros(length(colptr)) # postsynaptic spiking time
+    x::VFT = zeros(length(colptr)) # postsynaptic spiking time
+    vpost::VFT = zeros(length(colptr))
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
@@ -103,8 +104,8 @@ end
     J::VIT      # presynaptic index of W
     index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
     W::VFT  # synaptic weight
-    yᴱ::VFT = zero(W) # presynaptic spiking time
-    yᴵ::VFT = zero(W) # presynaptic spiking time
+    yᴱ::VFT = zeros(length(colptr)) # presynaptic spiking time
+    yᴵ::VFT = zeros(length(rowptr)) # presynaptic spiking time
     fireI::VBT 
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
@@ -186,33 +187,35 @@ function plasticity!(
     dt::Float32,
     t::Float32,
 )
-    @unpack rowptr, colptr, I, J, index, W, u, v, x, vpost, fireJ, g = c
+    @unpack rowptr, colptr, I, J, index, W, W0, u, v, x, vpost, fireJ, g = c
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
-    R(x) = x < 0 ? 0 : x
+    R(x) = x < 0 ? eltype(x)(0) : x
 
-    @inbounds for j = 1:(length(colptr)-1) # Iterate over all columns, j: presynaptic neuron
+    # @inbounds @fastmath
+    for j = 1:(length(colptr)-1) # Iterate over all columns, j: presynaptic neuron
         x[j] += dt * (-x[j] + fireJ[j]) / τx # presynaptic neuron
 
         for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
-            u[s] += dt * (-u[s] + vpost[s]) / τu # postsynaptic neuron
-            v[s] += dt * (-v[s] + vpost[s]) / τv # postsynaptic neuron
+            u[I[s]] += dt * (-u[I[s]] + vpost[I[s]]) / τu # postsynaptic neuron
+            v[I[s]] += dt * (-v[I[s]] + vpost[I[s]]) / τv # postsynaptic neuron
             
             # W[s] += - A_LTD * fireJ[j] * R(u[s] - θ_LTD)
             # + A_LTP * x[j] * R(vpost[s] - θ_LTP) * R(v[s] - θ_LTD)
-            W[s] = clamp(W[s] - A_LTD * fireJ[j] * R(u[s] - θ_LTD)
-            + A_LTP * x[j] * R(vpost[s] - θ_LTP) * R(v[s] - θ_LTD), Wmin, Wmax)
+            W[s] = W[s] - A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
+            + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD)
+        end
+    end
+    if (t % 20) == 0 
+        # @inbounds @fastmath
+        for i = 1:(length(rowptr)-1) # Iterate over all rows, i: postsynaptic neuron
+            _pretopost = index[rowptr[i]:rowptr[i+1]-1] # all presynaptic neurons connected to neuron i
+            W[_pretopost] .+= sum(W0[_pretopost].-W[_pretopost])./length(_pretopost) 
+            # W[_pretopost] .+= mean(W0[_pretopost].-W[_pretopost]) 
+            # @debug i, sum(W[_pretopost]), sum(W0[_pretopost])
         end
     end
 
-    @inbounds for i = 1:(length(rowptr)-1) # Iterate over all rows, i: postsynaptic neuron
-        # Scaling
-        _pre = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron i
-        W0 = sum(W[_pre])/length(W[_pre])
-        for st = rowptr[i]:(rowptr[i+1]-1) # presynaptic indeces to which neuron i connects
-            s = index[st]
-            W[s] -= W0
-        end
-    end
+    W[:] = clamp.(W[:], Wmin, Wmax)
 end
 
 function plasticity!(
@@ -229,7 +232,7 @@ function plasticity!(
 
         if fireJ[j] # presynaptic neuron
             for s = colptr[j]:(colptr[j+1]-1) # postsynaptic indeces to which neuron j connects
-                W[s] = clamp(W[s] + η * (yᴱ[j] - 2 * r₀ * τy), Wmin, Wmax)
+                W[s] = W[s] + η * (yᴱ[j] - 2 * r₀ * τy)
             end
         end
     end
@@ -239,10 +242,12 @@ function plasticity!(
         if fireI[i] # postsynaptic neuron
             for st = rowptr[i]:(rowptr[i+1]-1) # presynaptic indeces to which neuron i connects
                 s = index[st]
-                W[s] = clamp(W[s] + η * yᴵ[i], Wmin, Wmax)
+                W[s] = W[s] + η * yᴵ[i]
             end
         end
-     end
+    end
+    
+    W[:] = clamp.(W[:], Wmin, Wmax)
 end
 
 function plasticity!(

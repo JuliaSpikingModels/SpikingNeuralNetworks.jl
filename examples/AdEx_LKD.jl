@@ -45,7 +45,7 @@ I = SNN.IF(; N = 1000, param = LKD_IF_inh)
 
 EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter()) 
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
-IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter()) 
+IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter())
 II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
 
 ProjE = SNN.SpikingSynapse(Input_E, E, :ge; σ = σ_in_E, p = p_in)

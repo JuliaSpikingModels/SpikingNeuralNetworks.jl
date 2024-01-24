@@ -1,7 +1,7 @@
 using SpikingNeuralNetworks
 using Statistics
 ##
-w = SNN.sprand(10, 10, 0.2) # Construct a random sparse vector with length post.N, pre.N and density p
+w = SNN.sprand(100, 100, 0.2) # Construct a random sparse vector with length post.N, pre.N and density p
 w[findall(w.!=0)] .=1
 rowptr, colptr, I, J, index, W = SNN.dsparse(w) # Get info about the existing connections
 
@@ -11,7 +11,7 @@ println(size(colptr[1]:colptr[1+1]-1 ))
 println(size(1:(length(colptr)-1)))
 
 #select a pre-synaptic neuron
-j = 1
+j = 100
 ## check if it spiked or continue
 # find the indices of the post-synaptic neurons to which it connects
 post_synaptic_indices = colptr[j]:colptr[j+1]-1 
@@ -30,7 +30,7 @@ a  /=length(post_synaptic_indices)
 #easy way
 W0 = sum(Matrix(w),dims=2)[:,1]
 #non easy way.
-W0_noneasy = Vector{Float32}(undef,10)
+W0_noneasy = Vector{Float32}(undef,100)
 for i in 1:length(rowptr)-1
     _post = rowptr[i]:rowptr[i+1]-1 
     W0_noneasy[i] = sum(W[index[_post]])
