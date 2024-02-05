@@ -10,7 +10,7 @@ function sim!(P, C, dt)
 end
 
 function sim!(P, C; dt = 0.1ms, duration = 10ms)
-    for t = 0ms:dt:(duration - dt)
+    for t = 0ms:dt:(duration-dt)
         sim!(P, C, dt)
     end
 end
@@ -28,7 +28,7 @@ function train!(P, C, dt, t = 0)
 end
 
 function train!(P, C; dt = 0.1ms, duration = 10ms)
-    for t = 0ms:dt:(duration - dt)
+    for t = 0ms:dt:(duration-dt)
         train!(P, C, Float32(dt), Float32(t))
     end
 end

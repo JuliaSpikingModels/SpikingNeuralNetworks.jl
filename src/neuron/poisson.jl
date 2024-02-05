@@ -1,8 +1,8 @@
-@snn_kw struct PoissonParameter{FT=Float32}
+@snn_kw struct PoissonParameter{FT = Float32}
     rate::FT = 1Hz
 end
 
-@snn_kw mutable struct Poisson{VFT=Vector{Float32},VBT=Vector{Bool}}
+@snn_kw mutable struct Poisson{VFT = Vector{Float32},VBT = Vector{Bool}}
     param::PoissonParameter = PoissonParameter()
     N::Int32 = 100
     randcache::VFT = rand(N)

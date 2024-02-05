@@ -1,7 +1,6 @@
-struct FLSynapseParameter
-end
+struct FLSynapseParameter end
 
-@snn_kw mutable struct FLSynapse{MFT=Matrix{Float32},VFT=Vector{Float32},FT=Float32}
+@snn_kw mutable struct FLSynapse{MFT = Matrix{Float32},VFT = Vector{Float32},FT = Float32}
     param::FLSynapseParameter = FLSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -28,7 +27,7 @@ function FLSynapse(pre, post; σ = 1.5, p = 0.0, α = 1, kwargs...)
     u = 2rand(post.N) .- 1 # initial force weight
     P = α * I(post.N) # initial inverse of   = <rr'>
     q = zeros(post.N)
-    FLSynapse(;@symdict(W, rI, rJ, g, P, q, u, w)..., kwargs...)
+    FLSynapse(; @symdict(W, rI, rJ, g, P, q, u, w)..., kwargs...)
 end
 
 function forward!(c::FLSynapse, param::FLSynapseParameter)

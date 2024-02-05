@@ -1,4 +1,4 @@
-E = SNN.HH(;N = 1)
+E = SNN.HH(; N = 1)
 E.I = [0.001]
 
 SNN.monitor(E, [:v])
