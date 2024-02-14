@@ -13,6 +13,7 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     τw::FT = 144ms # Adaptation time constant (Spike-triggered adaptation time scale)
     a::FT = 4nS # Subthreshold adaptation parameter
     b::FT = 80.5nA # Spike-triggered adaptation parameter (amount by which the voltage is increased at each threshold crossing)
+    τabs::FT = 1ms # Absolute refractory period
 
     ## Synapses
     τre::FT = 1ms # Rise time for excitatory synapses
@@ -41,17 +42,22 @@ end
     he::Vector{Float64} = zeros(N)
     hi::Vector{Float64} = zeros(N)
     records::Dict = Dict()
+    timespikes::Vector{Float64} = zeros(N)
 end
 
 """
 	[Integrate-And-Fire Neuron](https://neuronaldynamics.epfl.ch/online/Ch1.S3.html)
 """
 
-function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
-    @unpack N, v, w, ge, gi, fire, I, θ, records, he, hi = p
-    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τre, τde, τri, τdi, At, τT, E_i, E_e = param
+function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
+    @unpack N, v, w, ge, gi, fire, I, θ, records, he, hi, timespikes = p
+    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, At, τT, E_i, E_e = param
     @inbounds for i ∈ 1:N
 
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = v[i]
+        #     continue
+        # end
         # Membrane potential
         v[i] +=
             dt * 1 / τm * (
@@ -98,11 +104,21 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
 
     end
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = Vr
+        #     θ[i] = θ[i]
+        #     w[i] = w[i]
+        #     continue
+        # end
+
         fire[i] = v[i] > 0.0
-    
         θ[i] = ifelse(fire[i], θ[i] + At, θ[i]) 
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b * τw, w[i]) # if there is a spike, increase adaptation current by an amount of b
+
+        # if fire[i]
+        #     timespikes[i] = t
+        # end
         # b: pA
     end
 end

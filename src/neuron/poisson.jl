@@ -15,7 +15,7 @@ end
 """
 Poisson
 
-function integrate!(p::Poisson, param::PoissonParameter, dt::Float32)
+function integrate!(p::Poisson, param::PoissonParameter, dt::Float32, t::Float64)
     @unpack N, randcache, fire = p
     @unpack rate = param
     prob = rate * dt

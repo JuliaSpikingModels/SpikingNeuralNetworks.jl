@@ -2,7 +2,7 @@ using Plots
 using SpikingNeuralNetworks
 SNN.@load_units
 import SpikingNeuralNetworks: AdExParameter
-using Statistics, Rando##
+using Statistics, Random
 
 function initialize()
     E = SNN.AdEx(; N = 2000, param = AdExParameter(El = -35mV))
@@ -41,7 +41,7 @@ plot(
     xlabel = "Input to I neurons (mA)",
     ylabel = "Firing rate (Hz)",
     lc = [:red :blue],
-    lw = 4,
+    lw = 4
 )
 ##
 

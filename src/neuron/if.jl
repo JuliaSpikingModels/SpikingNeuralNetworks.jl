@@ -31,14 +31,15 @@ end
 """
     [Integrate-And-Fire Neuron](https://neuronaldynamics.epfl.ch/online/Ch1.S3.html)
 """
-IF #TODO: why is this here?
+IF
 
-function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float32)
+function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float64)
     @unpack N, v, ge, gi, fire, I, records, he, hi = p
     @unpack τm, Vt, Vr, El, R, τre, τde, τri, τdi, E_i, E_e = param
     @inbounds for i = 1:N
+
         v[i] += dt * 1 / τm * (
-            - (v[i] - El)  # leakage
+            - (v[i] - El)  # leakag
             - R * (ge[i]*(v[i]-E_e ) + gi[i]*(v[i]-E_i)) #synaptic term
             + I[i]
         ) 
@@ -51,6 +52,7 @@ function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float32)
         gi[i] += - dt * gi[i] / τdi + hi[i]
         hi[i] += - dt * hi[i] / τri
     end
+
     @inbounds for i = 1:N
         fire[i] = v[i] > Vt
         v[i] = ifelse(fire[i], Vr, v[i])

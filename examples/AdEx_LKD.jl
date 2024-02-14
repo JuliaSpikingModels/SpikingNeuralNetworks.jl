@@ -14,9 +14,9 @@ R = τm / C
 τri = 0.5ms # Rise time for inhibitory synapses 
 τdi = 2ms # Decay time for inhibitory synapses
 
-LKD_AdEx_exc =
-    AdExParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -70mV, R = R, 
-    b = 0.000805nA, τw = 150ms, τre = τre, τde = τde, τri = τri, τdi = τdi, At = 10mV, τT = 30ms, E_i=-75mV, E_e = 0mV)
+LKD_AdEx_exc = 
+    AdExParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -70mV, R = R, ΔT = 2mV, a=4nS,
+    b = 0.805SNN.pA, τabs = 1ms, τw = 150ms, τre = τre, τde = τde, τri = τri, τdi = τdi, At = 10mV, τT = 30ms, E_i=-75mV, E_e = 0mV) 
 
 LKD_IF_inh =
     IFParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -62mV, R = R, τre = τre, τde = τde, τri = τri, τdi = τdi, E_i = -75mV, E_e=0mV)
