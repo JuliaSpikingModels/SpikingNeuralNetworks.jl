@@ -57,25 +57,26 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
             dt * 1 / τm * (
                 - (v[i] - El)  # leakage
                 + ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
-                - R * (ge[i]*(v[i]-E_e ) + gi[i]*(v[i]-E_i)) #synaptic term
+                - R * (ge[i] * (v[i] - E_e) + gi[i] * (v[i] - E_i)) #synaptic term
                 - R * w[i] + I[i] # adaptation
             ) 
-
 
         # mV = mV + ms * (nS + nS - (mV - mV) + mV * exp((mV - mV)/mV) - 1/nS * pA + pA) / ms
         # v: mV
         # dt: ms
-        # ge: nS (doesn't match ?)
-        # gi: nS (doesn't match ?)
+        # ge: nS
+        # gi: nS
         # El: mV
         # ΔT: mV
         # θ: mV
         # R = 1/gL: 1/nS --> ohm's law: I=V×C=V/R --> V=IxR (mV = pA x 1/nS, 10^-3 = 10^-12/10^-9)
-        # I: pA (doesn't match ?)
+        # I: pA
         # w: pA
 
-        # Adaptation current
-        w[i] += dt * (a * (v[i] - El) - w[i]) / τw
+        # Adaptation current 
+        # TODO: I should use this, but doesn't work if I do
+        # w[i] += dt * (a * (v[i] - El) - w[i]) / τw
+
         # pA = pA + ms * (nS * (mV - mV) - pA) / ms  --> ohm's law: I = V x 1/R (pA = mV x nS)
         # w: pA
         # a: nS
@@ -94,21 +95,9 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         hi[i] += - dt * hi[i] / τri
 
         θ[i] += dt * (Vt - θ[i]) / τT
-        # Double exponential version 2
-        # ge[i] = exp32(-dt*τd⁻)*(ge[i] + dt*he[i])
-        # he[i] = exp32(-dt*τr⁻)*(he[i])
-
-        # gi[i] = exp32(-dt*τd⁻)*(gi[i] + dt*hi[i])
-        # hi[i] = exp32(-dt*τr⁻)*(hi[i])
 
     end
-    @inbounds for i ∈ 1:N # TODO: why separate? don't we need to check if there is a spike in the previous loop
-        # to update correctly v and vt?
-
-        # if i ==333 
-        #     @debug v[i], θ[i]
-        # end
-
+    @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
         fire[i] = v[i] > 0.0
     
         θ[i] = ifelse(fire[i], θ[i] + At, θ[i]) 

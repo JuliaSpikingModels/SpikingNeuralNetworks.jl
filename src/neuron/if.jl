@@ -4,6 +4,7 @@ abstract type AbstractIFParameter end
     Vt::FT = -50mV
     Vr::FT = -60mV
     El::FT = Vr
+    R::FT = nS / gL # Resistance
     τre::FT = 1ms # Rise time for excitatory synapses
     τde::FT = 6ms # Decay time for excitatory synapses
     τri::FT = 0.5ms # Rise time for inhibitory synapses
@@ -32,11 +33,15 @@ end
 """
 IF #TODO: why is this here?
 
-function integrate!(p::IF, param::IFParameter, dt::Float32)
+function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float32)
     @unpack N, v, ge, gi, fire, I, records, he, hi = p
-    @unpack τm, Vt, Vr, El, τre, τde, τri, τdi, E_i, E_e = param
+    @unpack τm, Vt, Vr, El, R, τre, τde, τri, τdi, E_i, E_e = param
     @inbounds for i = 1:N
-        v[i] += dt * ((ge[i] *(E_e - v[i])+ gi[i]*((E_i - v[i])))  - (El - v[i]) + I[i]) / τm 
+        v[i] += dt * 1 / τm * (
+            - (v[i] - El)  # leakage
+            - R * (ge[i]*(v[i]-E_e ) + gi[i]*(v[i]-E_i)) #synaptic term
+            + I[i]
+        ) 
         # ge[i] += dt * -ge[i] / τe
         # gi[i] += dt * -gi[i] / τi
 

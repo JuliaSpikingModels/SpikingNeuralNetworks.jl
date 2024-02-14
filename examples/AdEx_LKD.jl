@@ -19,15 +19,15 @@ LKD_AdEx_exc =
     b = 0.000805nA, τw = 150ms, τre = τre, τde = τde, τri = τri, τdi = τdi, At = 10mV, τT = 30ms, E_i=-75mV, E_e = 0mV)
 
 LKD_IF_inh =
-    IFParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -62mV, τre = τre, τde = τde, τri = τri, τdi = τdi, E_i = -75mV, E_e=0mV)
+    IFParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -62mV, R = R, τre = τre, τde = τde, τri = τri, τdi = τdi, E_i = -75mV, E_e=0mV)
 # LKD_AdEx_inh =
 #     AdExParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -62mV, R = R, 
 #     b = 0.000805nA, τw = 150ms, τre = τre, τde = τde, τri = τri, τdi = τdi, At = 10mV, τT = 30ms, E = -75mV)
 
 # inputs, the kHz is obtained by the N*ν, so doing the spikes (read eqs. 4 section)
 N = 1000
-νe = 4.5SNN.kHz # Rate of external input to E neurons
-νi = 2.25SNN.kHz # Rate of external input to I neurons
+νe = 4.5Hz # Rate of external input to E neurons
+νi = 2.25Hz # Rate of external input to I neurons
 p_in = 1.0 # 0.5 
 σ_in_E = 1.78SNN.pF
 
@@ -58,16 +58,16 @@ C = [EE, EI, IE, II, ProjE, ProjI]
 #
 Random.seed!(28)
 SNN.monitor([E, I], [:fire])
-# SNN.train!(P, C; duration = 1second)
+SNN.train!(P, C; duration = 10ms)
 
-debuglogger = ConsoleLogger(stderr, Logging.Debug)
-with_logger(debuglogger) do
-    @debug "Start the simulation"
-    # SNN.sim!(P, C; duration = 1second)
-    SNN.train!(P, C; duration = 1second)
-end
+# debuglogger = ConsoleLogger(stderr, Logging.Debug)
+# with_logger(debuglogger) do
+#     @debug "Start the simulation"
+#     # SNN.sim!(P, C; duration = 1second)
+#     SNN.train!(P, C; duration = 1second)
+# end
 # ##
 # bar(sum(hcat(E.records[:fire]...) ./ 1, dims = 2)[:, 1])
 # SNN.raster([E, I], [9, 11] .* 10e3)
-SNN.raster([E, I], [0, 1] .* 10e3)
+SNN.raster([E, I], [0, 1] .* 10e1)
     

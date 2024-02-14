@@ -17,16 +17,16 @@ end
     τu::FT = 10ms
     τv::FT = 7ms
     τx::FT = 15ms
-    Wmax::FT = 21.4pA
-    Wmin::FT = 1.78pA
+    Wmax::FT = 21.4pF
+    Wmin::FT = 1.78pF
 end
 
 @snn_kw struct iSTDPParameter{FT = Float32} <: SpikingSynapseParameter
     η::FT = 1pA
     r₀::FT = 3Hz
     τy::FT = 20ms
-    Wmax::FT = 243pA
-    Wmin::FT = 48.7pA
+    Wmax::FT = 243pF
+    Wmin::FT = 48.7pF
 end
 
 struct no_STDPParameter <:SpikingSynapseParameter end
