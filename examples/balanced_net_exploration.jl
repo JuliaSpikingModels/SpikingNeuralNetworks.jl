@@ -46,15 +46,17 @@ LKD_IF_inh =
 
 I = SNN.IF(; N = 100, param = LKD_IF_inh)
 
+EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter()) 
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
 IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter())
+II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
 
 Input_I = SNN.Poisson(; N = N, param = SNN.PoissonParameter(; rate = νi))
 ProjI = SNN.SpikingSynapse(Input_I, I, :ge; σ = σ_in_E, p = p_in)
 
 #
 P = [E, I, Input_E, Input_I]
-C = [EI, IE, ProjE, ProjI]
+C = [EE, II, EI, IE, ProjE, ProjI]
 
 #
 SNN.monitor([E, I], [:fire]) 
@@ -76,12 +78,22 @@ frequencies = [1Hz 10Hz 100Hz]
 E_bin_counts = []
 I_bin_counts = []
 bin_edges = []
-bin_width = 5  # in milliseconds
+bin_width = 10  # in milliseconds
 
 num_bins = Int(length(E.records[:fire]) / bin_width)
 bin_edges = 1:bin_width:(num_bins * bin_width)
 
 for νi in frequencies
+    E = SNN.AdEx(; N = 100, param = LKD_AdEx_exc)
+    I = SNN.IF(; N = 100, param = LKD_IF_inh)
+
+    EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter()) 
+    EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
+    IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter())
+    II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
+
+    Input_E = SNN.Poisson(; N = N, param = SNN.PoissonParameter(; rate = νe))
+    ProjE = SNN.SpikingSynapse(Input_E, E, :ge; σ = σ_in_E, p = p_in) # connection from input to E  
     Input_I = SNN.Poisson(; N = N, param = SNN.PoissonParameter(; rate = νi))
     ProjI = SNN.SpikingSynapse(Input_I, I, :ge; σ = σ_in_E, p = p_in)
 
@@ -99,7 +111,7 @@ for νi in frequencies
 end
 
 # Create a new plot or use an existing plot if it exists
-plot(xlabel="Time (ms)", size=(800, 800), ylabel="Firing frequency (spikes/$(bin_width) ms)", 
+plot(xlabel="Time bins", size=(800, 800), ylabel="Firing frequency (spikes/$(bin_width) ms)", 
     xtickfontsize=6, ytickfontsize=6, yguidefontsize=6, xguidefontsize=6, titlefontsize=7,
     legend=:bottomright, layout=(length(frequencies), 1), title=["νi = $(νi*1000)Hz" for νi in frequencies])
 
