@@ -5,12 +5,14 @@ abstract type AbstractIFParameter end
     Vr::FT = -60mV
     El::FT = Vr
     R::FT = nS / gL # Resistance
+    ΔT::FT = 2mV # Slope factor
     τre::FT = 1ms # Rise time for excitatory synapses
     τde::FT = 6ms # Decay time for excitatory synapses
     τri::FT = 0.5ms # Rise time for inhibitory synapses
     τdi::FT = 2ms # Decay time for inhibitory synapses
     E_i::FT = -75mV # Reversal potential
     E_e::FT = 0mV # Reversal potential
+    τabs::FT = 1ms # Absolute refractory period
 end
 
 abstract type AbstractIF end
@@ -26,6 +28,7 @@ abstract type AbstractIF end
     records::Dict = Dict()
     he::Vector{Float64} = zeros(N)
     hi::Vector{Float64} = zeros(N)
+    timespikes::Vector{Float64} = zeros(N)
 end
 
 """
@@ -34,27 +37,39 @@ end
 IF
 
 function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float64)
-    @unpack N, v, ge, gi, fire, I, records, he, hi = p
-    @unpack τm, Vt, Vr, El, R, τre, τde, τri, τdi, E_i, E_e = param
+    @unpack N, v, ge, gi, fire, I, records, he, hi, timespikes = p
+    @unpack τm, Vt, Vr, El, R, ΔT, τre, τde, τri, τdi, E_i, E_e, τabs = param
     @inbounds for i = 1:N
+        # Refractory period
+        if (t - timespikes[i]) < τabs
+            v[i] = v[i]
+            continue
+        end
 
-        v[i] += dt * 1 / τm * (
+        v[i] += dt * (
             - (v[i] - El)  # leakage
-            - R * (ge[i]*(v[i]-E_e ) + gi[i]*(v[i]-E_i)) #synaptic term
-            + I[i]
-        ) 
-        # ge[i] += dt * -ge[i] / τe
-        # gi[i] += dt * -gi[i] / τi
+            + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i]) #synaptic term
+        ) / τm
 
-        ge[i] += - dt * ge[i] / τde + he[i]
-        he[i] += - dt * he[i] / τre
+        ge[i] += dt * (- ge[i] / τde + he[i]) 
+        he[i] -= dt * he[i] / τre
 
-        gi[i] += - dt * gi[i] / τdi + hi[i]
-        hi[i] += - dt * hi[i] / τri
+        gi[i] += dt * (- gi[i] / τdi + hi[i])
+        hi[i] -= dt * hi[i] / τri
     end
 
     @inbounds for i = 1:N
+        # Refractory period
+        if (t - timespikes[i]) < τabs
+            v[i] = Vr
+            continue
+        end
+
         fire[i] = v[i] > Vt
         v[i] = ifelse(fire[i], Vr, v[i])
+
+        if fire[i]
+            timespikes[i] = t
+        end 
     end
 end

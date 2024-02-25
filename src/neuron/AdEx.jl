@@ -7,7 +7,6 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     Vr::FT = -70.6mV # Reset potential
     El::FT = Vr # Resting membrane potential 
     R::FT = nS / gL # Resistance
-    C::FT = 300pF
     ΔT::FT = 2mV # Slope factor
     τw::FT = 144ms # Adaptation time constant (Spike-triggered adaptation time scale)
     a::FT = 4nS # Subthreshold adaptation parameter
@@ -50,7 +49,7 @@ end
 
 function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
     @unpack N, v, w, fire, θ, I, ge, gi, he, hi, records, timespikes = p
-    @unpack τm, Vt, Vr, El, R, C, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, E_i, E_e, At, τT = param
+    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, E_i, E_e, At, τT = param
     @inbounds for i ∈ 1:N
 
         # Refractory period
@@ -71,7 +70,7 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
         # Adaptation current 
         w[i] += dt * (a * (v[i] - El) - w[i]) / τw
 
-        # Double exponential version 1
+        # Double exponential
         ge[i] += dt * (- ge[i] / τde + he[i]) 
         he[i] -= dt * he[i] / τre
 
@@ -92,7 +91,7 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
         end
 
         fire[i] = v[i] > 0
-        θ[i] = ifelse(fire[i], θ[i] + At, θ[i]) # θ[i] + At
+        θ[i] = ifelse(fire[i], θ[i] + At, θ[i])
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
         if fire[i]

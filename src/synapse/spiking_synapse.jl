@@ -199,12 +199,11 @@ function plasticity!(
             u[I[s]] += dt * (-u[I[s]] + vpost[I[s]]) / τu # postsynaptic neuron
             v[I[s]] += dt * (-v[I[s]] + vpost[I[s]]) / τv # postsynaptic neuron
             
-            # W[s] += - A_LTD * fireJ[j] * R(u[s] - θ_LTD)
-            # + A_LTP * x[j] * R(vpost[s] - θ_LTP) * R(v[s] - θ_LTD)
-            W[s] = W[s] - A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
-            + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD)
+            W[s] += dt * (- A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
+            + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD))
         end
     end
+
     if (t % 20) == 0 
         # @inbounds @fastmath
         for i = 1:(length(rowptr)-1) # Iterate over all rows, i: postsynaptic neuron

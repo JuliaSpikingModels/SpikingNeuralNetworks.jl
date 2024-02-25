@@ -7,8 +7,6 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     Vr::FT = -70.6mV # Reset potential
     El::FT = Vr # Resting membrane potential 
     R::FT = nS / gL # Resistance
-    C::FT = 300pF
-    ΔT::FT = 2mV # Slope factor
     τabs::FT = 1ms # Absolute refractory period
 end
 
@@ -17,7 +15,6 @@ end
     N::Int32 = 100 # Number of neurons
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     fire::VBT = zeros(Bool, N) # Store spikes
-    θ::VFT = ones(N) * param.Vt # Array with membrane potential thresholds
     I::VFT = zeros(N) # Current
     records::Dict = Dict()
     timespikes::Vector{Float64} = zeros(N)
@@ -28,8 +25,8 @@ end
 """
 
 function integrate!(p::IFConst, param::IFConstParameter, dt::Float32, t::Float64)
-    @unpack N, v, fire, θ, I, records, timespikes = p
-    @unpack τm, Vt, Vr, El, R, C, ΔT, τabs = param
+    @unpack N, v, fire, I, records, timespikes = p
+    @unpack τm, Vt, Vr, El, R, τabs = param
     @inbounds for i ∈ 1:N
 
         # Refractory period
@@ -42,7 +39,6 @@ function integrate!(p::IFConst, param::IFConstParameter, dt::Float32, t::Float64
         v[i] +=
             dt * (
                 - (v[i] - El)  # leakage
-                + ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
                 + R * 500pA  # constant input current
             ) / τm
         
@@ -55,8 +51,9 @@ function integrate!(p::IFConst, param::IFConstParameter, dt::Float32, t::Float64
             continue
         end
 
-        fire[i] = v[i] > 0 # It's not Vt anymore because of the exponential term 
+        fire[i] = v[i] > Vt
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
+
         if fire[i]
             timespikes[i] = t
         end 

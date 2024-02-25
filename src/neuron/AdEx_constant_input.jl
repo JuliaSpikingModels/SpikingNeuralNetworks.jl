@@ -55,22 +55,18 @@ function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32, t::Flo
                 - R * w[i] # adaptation
             ) / τm
 
-        w[i] += dt * (a * (v[i] - El) - w[i]) / τw
-        # θ[i] += dt * (Vt - θ[i]) / τT
-        
+        w[i] += dt * (a * (v[i] - El) - w[i]) / τw        
     end
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
         # Refractory period
         if (t - timespikes[i]) < τabs
             v[i] = Vr
-            # θ[i] = θ[i]
             w[i] = w[i]
             continue
         end
 
         fire[i] = v[i] > 0 # It's not Vt anymore because of the exponential term 
-        # θ[i] = ifelse(fire[i], θ[i] + At, θ[i]) # θ[i]
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
         if fire[i]
