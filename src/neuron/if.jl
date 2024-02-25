@@ -39,7 +39,7 @@ function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float64)
     @inbounds for i = 1:N
 
         v[i] += dt * 1 / τm * (
-            - (v[i] - El)  # leakag
+            - (v[i] - El)  # leakage
             - R * (ge[i]*(v[i]-E_e ) + gi[i]*(v[i]-E_i)) #synaptic term
             + I[i]
         ) 
