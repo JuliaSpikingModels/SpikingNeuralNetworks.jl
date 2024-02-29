@@ -119,7 +119,7 @@ SpikingSynapse
 
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
     w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
-    w[findall(w.>0)] .=σ # make all the weights the same
+    w[findall(w.>0)] .= σ # make all the weights the same
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer

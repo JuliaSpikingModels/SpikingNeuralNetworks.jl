@@ -23,7 +23,7 @@ LKD_IF_inh =
 N = 1000
 νe = 4.5Hz # Rate of external input to E neurons
 νi = 2.25Hz # Rate of external input to I neurons
-p_in = 0.2 # 0.5 
+p_in = 0.05 # 0.5 
 σ_in_E = 1.78SNN.pF
 
 σEE = 2.76SNN.pF # Initial E to E synaptic weight
@@ -51,5 +51,12 @@ Random.seed!(28)
 SNN.monitor([E, I], [:fire])
 SNN.train!(P, C; duration = 700ms)
 
-SNN.raster([E, I], [0, 1] .* 70e1)
+p1 = plot(SNN.vecplot(E,:v),
+xlabel = "Time (ms)", 
+ylabel = "Membrane Potential (mV)", 
+p2 = plot(SNN.vecplot(E,:w),
+xlabel = "Time (ms)",
+ylabel = "Adaptation current (pA)"))
+plot(p1,p2, size=(1100,450), title = "AdEx neurons with Poisson inputs")
+# SNN.raster([E, I], [0, 1] .* 70e1)
     
