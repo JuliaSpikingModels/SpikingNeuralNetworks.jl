@@ -47,16 +47,21 @@ end
 	[Integrate-And-Fire Neuron](https://neuronaldynamics.epfl.ch/online/Ch1.S3.html)
 """
 
-function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
+function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @unpack N, v, w, fire, θ, I, ge, gi, he, hi, records, timespikes = p
     @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, E_i, E_e, At, τT = param
     @inbounds for i ∈ 1:N
 
-        # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = v[i]
-            continue
-        end
+        # timespikes[i] -= -1
+
+        # # Refractory period
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = v[i]
+        #     continue
+        # end
+
+        # Adaptation current 
+        w[i] += dt * (a * (v[i] - El) - w[i]) / τw
 
         # Membrane potential
         v[i] +=
@@ -66,9 +71,6 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
                 + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i]) #synaptic term: conductance times membrane potential difference gives synaptic current
                 - R * w[i] # adaptation
             ) / τm
-
-        # Adaptation current 
-        w[i] += dt * (a * (v[i] - El) - w[i]) / τw
 
         # Double exponential
         ge[i] += dt * (- ge[i] / τde + he[i]) 
@@ -83,20 +85,20 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32, t::Float64)
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
         # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = Vr
-            θ[i] = θ[i]
-            w[i] = w[i]
-            continue
-        end
+        # if timespikes[i] > 0
+        #     v[i] = Vr
+        #     θ[i] = θ[i]
+        #     w[i] = w[i]
+        #     continue
+        # end
 
         fire[i] = v[i] > 0
         θ[i] = ifelse(fire[i], θ[i] + At, θ[i])
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
-        if fire[i]
-            timespikes[i] = t
-        end 
+        # if fire[i]
+        #     timespikes[i] = round(Int, τabs/dt)
+        # end 
     end
 end
 

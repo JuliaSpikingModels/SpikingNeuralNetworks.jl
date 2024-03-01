@@ -36,15 +36,15 @@ end
 """
 IF
 
-function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float64)
+function integrate!(p::IF, param::IFParameter, dt::Float32)
     @unpack N, v, ge, gi, fire, I, records, he, hi, timespikes = p
     @unpack τm, Vt, Vr, El, R, ΔT, τre, τde, τri, τdi, E_i, E_e, τabs = param
     @inbounds for i = 1:N
-        # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = v[i]
-            continue
-        end
+        # # Refractory period
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = v[i]
+        #     continue
+        # end
 
         v[i] += dt * (
             - (v[i] - El)  # leakage
@@ -59,17 +59,17 @@ function integrate!(p::IF, param::IFParameter, dt::Float32, t::Float64)
     end
 
     @inbounds for i = 1:N
-        # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = Vr
-            continue
-        end
+        # # Refractory period
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = Vr
+        #     continue
+        # end
 
         fire[i] = v[i] > Vt
         v[i] = ifelse(fire[i], Vr, v[i])
 
-        if fire[i]
-            timespikes[i] = t
-        end 
+        # if fire[i]
+        #     timespikes[i] = t
+        # end 
     end
 end

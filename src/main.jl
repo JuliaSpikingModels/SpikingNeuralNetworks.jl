@@ -1,6 +1,6 @@
-function sim!(P, C, dt, t)
-    for p in P # for all the neurons in the population
-        integrate!(p, p.param, Float32(dt), t) 
+function sim!(P, C, dt)
+    for p in P
+        integrate!(p, p.param, Float32(dt))
         record!(p)
     end
     for c in C
@@ -10,14 +10,14 @@ function sim!(P, C, dt, t)
 end
 
 function sim!(P, C; dt = 0.1ms, duration = 10ms)
-    for t = 0ms:dt:(duration-dt)
-        sim!(P, C, dt, t)
+    for t = 0ms:dt:(duration - dt)
+        sim!(P, C, dt)
     end
 end
 
 function train!(P, C, dt, t = 0)
     for p in P
-        integrate!(p, p.param, Float32(dt), Float64(t))
+        integrate!(p, p.param, Float32(dt))
         record!(p)
     end
     for c in C
@@ -28,7 +28,7 @@ function train!(P, C, dt, t = 0)
 end
 
 function train!(P, C; dt = 0.1ms, duration = 10ms)
-    for t = 0ms:dt:(duration-dt)
+    for t = 0ms:dt:(duration - dt)
         train!(P, C, Float32(dt), Float32(t))
     end
 end

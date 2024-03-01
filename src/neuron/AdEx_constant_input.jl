@@ -35,16 +35,16 @@ end
 	[Integrate-And-Fire Neuron](https://neuronaldynamics.epfl.ch/online/Ch1.S3.html)
 """
 
-function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32, t::Float64)
+function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32)
     @unpack N, v, w, fire, θ, I, records, timespikes = p
     @unpack τm, Vt, Vr, El, R, C, ΔT, a, b, τw, τabs, At, τT = param
     @inbounds for i ∈ 1:N
 
-        # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = v[i]
-            continue
-        end
+        # # Refractory period
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = v[i]
+        #     continue
+        # end
 
         # Membrane potential
         v[i] +=
@@ -59,19 +59,19 @@ function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32, t::Flo
     end
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
-        # Refractory period
-        if (t - timespikes[i]) < τabs
-            v[i] = Vr
-            w[i] = w[i]
-            continue
-        end
+        # # Refractory period
+        # if (t - timespikes[i]) < τabs
+        #     v[i] = Vr
+        #     w[i] = w[i]
+        #     continue
+        # end
 
         fire[i] = v[i] > 0 # It's not Vt anymore because of the exponential term 
         v[i] = ifelse(fire[i], Vr, v[i]) # if there is a spike, set membrane potential to reset potential
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
-        if fire[i]
-            timespikes[i] = t
-        end 
+        # if fire[i]
+        #     timespikes[i] = t
+        # end 
     end
 end
 
