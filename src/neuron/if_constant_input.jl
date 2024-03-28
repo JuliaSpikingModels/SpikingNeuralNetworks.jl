@@ -39,7 +39,7 @@ function integrate!(p::IFConst, param::IFConstParameter, dt::Float32)
         v[i] +=
             dt * (
                 - (v[i] - El)  # leakage
-                + R * 500pA  # constant input current
+                + R * 200pA  # constant input current
             ) / τm
         
     end

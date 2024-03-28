@@ -51,7 +51,7 @@ function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32)
             dt * (
                 - (v[i] - El)  # leakage
                 + ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
-                + R * 500pA  # constant input current
+                + R * 250pA  # constant input current
                 - R * w[i] # adaptation
             ) / τm
 
