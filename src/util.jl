@@ -35,17 +35,35 @@ function dsparse(A)
 end
 
 function record!(obj)
+    """
+    Store values into the dictionary named `records` in the object given 
+
+    # Arguments
+    - `obj`: An object whose values are to be recorded
+
+    """
     for (key, val) in obj.records
+        # `val` here is a vector, so we can directly push a value from the variable accessed with getfield(obj, key) into this vector
         if isa(key, Tuple)
             sym, ind = key
-            push!(val, getindex(getfield(obj, sym), ind))
+            # getfield(obj, sym) extracts the field `sym` from the object `obj`
+            push!(val, getindex(getfield(obj, sym), ind)) # getindex returns the subset of `getfield(obj, sym)` at the given index `ind`
         else
+            # copy() is necessary here because we want to push the same value but store it at a different memory location (so that when one is changed, the other is not)
             push!(val, copy(getfield(obj, key)))
         end
     end
 end
 
 function monitor(obj, keys)
+    """
+    Initialize dictionary records for the given object, by assigning empty vectors to the given keys
+    
+    # Arguments
+    - `obj`: An object whose variables will be monitored
+    - `keys`: The variables to be monitored
+    
+    """
     for key in keys
         if isa(key, Tuple)
             sym, ind = key
@@ -58,6 +76,9 @@ function monitor(obj, keys)
 end
 
 function monitor(objs::Array, keys)
+    """
+    Function called when more than one object is given, which then calls the above monitor function for each object
+    """
     for obj in objs
         monitor(obj, keys)
     end
