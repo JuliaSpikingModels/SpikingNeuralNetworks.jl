@@ -164,10 +164,10 @@ end
 
 function forward!(c::SpikingSynapse, param::SpikingSynapseParameter)
     @unpack colptr, I, W, fireJ, g = c
-    @inbounds for j = 1:(length(colptr)-1)
-        if fireJ[j]
-            for s = colptr[j]:(colptr[j+1]-1)
-                g[I[s]] += W[s]
+    @inbounds for j = 1:(length(colptr)-1) # Iterate over all columns, j: presynaptic neuron
+        if fireJ[j] # if presynaptic neuron fired, then
+            for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
+                g[I[s]] += W[s] # update the conductance of the postsynaptic neuron s
             end
         end
     end
