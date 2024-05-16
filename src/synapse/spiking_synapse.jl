@@ -201,6 +201,8 @@ function plasticity!(
             
             W[s] += dt * (- A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
             + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD))
+
+            W[s] = clamp(W[s], Wmin, Wmax)
         end
     end
 
@@ -231,7 +233,8 @@ function plasticity!(
 
         if fireJ[j] # presynaptic neuron
             for s = colptr[j]:(colptr[j+1]-1) # postsynaptic indeces to which neuron j connects
-                W[s] = W[s] + η * (yᴱ[j] - 2 * r₀ * τy)
+                # W[s] = W[s] + η * (yᴱ[j] - 2 * r₀ * τy)
+                W[s] = clamp(W[s] + η * (yᴱ[j] - 2 * r₀ * τy), Wmin, Wmax)
             end
         end
     end
@@ -241,12 +244,13 @@ function plasticity!(
         if fireI[i] # postsynaptic neuron
             for st = rowptr[i]:(rowptr[i+1]-1) # presynaptic indeces to which neuron i connects
                 s = index[st]
-                W[s] = W[s] + η * yᴵ[i]
+                # W[s] = W[s] + η * yᴵ[i]
+                W[s] = clamp(W[s] + η * yᴵ[i], Wmin, Wmax)
             end
         end
     end
     
-    W[:] = clamp.(W[:], Wmin, Wmax)
+    # W[:] = clamp.(W[:], Wmin, Wmax) # clamps all neurons?
 end
 
 function plasticity!(
