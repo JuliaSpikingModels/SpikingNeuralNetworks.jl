@@ -119,7 +119,7 @@ SpikingSynapse
 
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
     w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
-    w[findall(w.>0)] .=σ # make all the weights the same
+    w[findall(w.>0)] .= σ # make all the weights the same
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
@@ -164,10 +164,10 @@ end
 
 function forward!(c::SpikingSynapse, param::SpikingSynapseParameter)
     @unpack colptr, I, W, fireJ, g = c
-    @inbounds for j = 1:(length(colptr)-1)
-        if fireJ[j]
-            for s = colptr[j]:(colptr[j+1]-1)
-                g[I[s]] += W[s]
+    @inbounds for j = 1:(length(colptr)-1) # Iterate over all columns, j: presynaptic neuron
+        if fireJ[j] # if presynaptic neuron fired, then
+            for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
+                g[I[s]] += W[s] # update the conductance of the postsynaptic neuron s
             end
         end
     end
@@ -199,12 +199,13 @@ function plasticity!(
             u[I[s]] += dt * (-u[I[s]] + vpost[I[s]]) / τu # postsynaptic neuron
             v[I[s]] += dt * (-v[I[s]] + vpost[I[s]]) / τv # postsynaptic neuron
             
-            # W[s] += - A_LTD * fireJ[j] * R(u[s] - θ_LTD)
-            # + A_LTP * x[j] * R(vpost[s] - θ_LTP) * R(v[s] - θ_LTD)
-            W[s] = W[s] - A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
-            + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD)
+            W[s] += dt * (- A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD)
+            + A_LTP * x[j] * R(vpost[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD))
+
+            W[s] = clamp(W[s], Wmin, Wmax)
         end
     end
+
     if (t % 20) == 0 
         # @inbounds @fastmath
         for i = 1:(length(rowptr)-1) # Iterate over all rows, i: postsynaptic neuron
@@ -232,7 +233,8 @@ function plasticity!(
 
         if fireJ[j] # presynaptic neuron
             for s = colptr[j]:(colptr[j+1]-1) # postsynaptic indeces to which neuron j connects
-                W[s] = W[s] + η * (yᴱ[j] - 2 * r₀ * τy)
+                # W[s] = W[s] + η * (yᴱ[j] - 2 * r₀ * τy)
+                W[s] = clamp(W[s] + η * (yᴱ[j] - 2 * r₀ * τy), Wmin, Wmax)
             end
         end
     end
@@ -242,12 +244,13 @@ function plasticity!(
         if fireI[i] # postsynaptic neuron
             for st = rowptr[i]:(rowptr[i+1]-1) # presynaptic indeces to which neuron i connects
                 s = index[st]
-                W[s] = W[s] + η * yᴵ[i]
+                # W[s] = W[s] + η * yᴵ[i]
+                W[s] = clamp(W[s] + η * yᴵ[i], Wmin, Wmax)
             end
         end
     end
     
-    W[:] = clamp.(W[:], Wmin, Wmax)
+    # W[:] = clamp.(W[:], Wmin, Wmax) # clamps all neurons?
 end
 
 function plasticity!(

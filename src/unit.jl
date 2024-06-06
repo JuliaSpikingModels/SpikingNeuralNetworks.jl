@@ -22,7 +22,7 @@ const pA = ampere / 1e12
 const farad = 1e6
 const mF = farad / 1e3
 const uF = farad / 1e6
-const bF = farad / 1e9
+const nF = farad / 1e9
 const pF = farad / 1e12
 const ufarad = uF
 
@@ -58,8 +58,10 @@ macro load_units()
         :mA,
         :uA,
         :nA,
+        :pA,
         :farad,
         :uF,
+        :pF,
         :ufarad,
         :siemens,
         :mS,
