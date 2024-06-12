@@ -44,10 +44,11 @@ function record!(obj)
     """
     for (key, val) in obj.records
         # `val` here is a vector, so we can directly push a value from the variable accessed with getfield(obj, key) into this vector
-        if isa(key, Tuple)
-            sym, ind = key
-            # getfield(obj, sym) extracts the field `sym` from the object `obj`
-            push!(val, getindex(getfield(obj, sym), ind)) # getindex returns the subset of `getfield(obj, sym)` at the given index `ind`
+        (key == :indices) && (continue)
+        if haskey(obj.records, :indices) && haskey(obj.records[:indices], key)
+            indices = get(obj.records, :indices, nothing)
+            ind = get(indices, key, nothing)
+            push!(val, getindex(getfield(obj, key),ind )) # getindex returns the subset of `getfield(obj, sym)` at the given index `ind`
         else
             # copy() is necessary here because we want to push the same value but store it at a different memory location (so that when one is changed, the other is not)
             push!(val, copy(getfield(obj, key)))
@@ -65,13 +66,18 @@ function monitor(obj, keys)
     
     """
     for key in keys
+        @info key
         if isa(key, Tuple)
             sym, ind = key
+            if !haskey(obj.records, :indices)
+                obj.records[:indices] = Dict{Symbol, Vector{Int}}()
+            end
+            push!(obj.records[:indices], sym=>ind)
         else
             sym = key
         end
         typ = typeof(getfield(obj, sym))
-        obj.records[key] = Vector{typ}()
+        obj.records[sym] = Vector{typ}()
     end
 end
 
@@ -96,6 +102,9 @@ function clear_records(obj)
     for (key, val) in obj.records
         empty!(val)
     end
+end
+function clear_monitor(obj)
+    obj.records= Dict()
 end
 
 @inline function exp32(x::Float32)

@@ -16,12 +16,14 @@ const mV = voltage / 1e3
 const ampere = 1e12
 const mA = ampere / 1e3
 const uA = ampere / 1e6
+const μA = ampere / 1e6
 const nA = ampere / 1e9
 const pA = ampere / 1e12
 
 const farad = 1e12
 const mF = farad / 1e3
 const uF = farad / 1e6
+const μF = farad / 1e6
 const nF = farad / 1e9
 const pF = farad / 1e12
 const ufarad = uF
@@ -59,10 +61,13 @@ macro load_units()
         :ampere,
         :mA,
         :uA,
+        :μA,
         :nA,
         :pA,
         :farad,
+        :Ω,
         :uF,
+        :μF,
         :pF,
         :ufarad,
         :siemens,

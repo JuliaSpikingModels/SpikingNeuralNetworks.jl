@@ -24,3 +24,5 @@ function integrate!(p::Poisson, param::PoissonParameter, dt::Float32)
         fire[i] = randcache[i] < prob
     end
 end
+
+export Poisson, PoissonParameter
