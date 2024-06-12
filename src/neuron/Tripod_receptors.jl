@@ -44,9 +44,11 @@ end
     param::AdExTripod = AdExTripod()
     ## These are compulsory parameters
     N::Int32 = 100
+    soma_syn::ST
+    dend_syn::ST 
+    d1::VDT
+    d2::VDT
     NMDA::NMDAT =  NMDAVoltageDependency(mg=Mg_mM, b=nmda_b, k=nmda_k)
-    soma_syn::SynapseArray
-    dend_syn::SynapseArray
     ##
     # dendrites
     gax1::VFT=zeros(N)
@@ -55,23 +57,17 @@ end
     cd2::VFT=zeros(N)
     gm1::VFT=zeros(N)
     gm2::VFT=zeros(N)
-    # Synapses
-    τr::SArray{Tuple{4,2},Float32}
-    τd::SArray{Tuple{4,2},Float32}
-    gsyn::SArray{Tuple{4,2},Float32}
-    E_rev::SArray{Tuple{4,2},Float32}
-    rtypes::SArray{Tuple{4,2},String}
     ##
     # Membrane potential and adaptation
     v_s::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     w_s::VFT = zeros(N)
     v_d1::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     v_d2::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
-    ##
-    g_s::MFT = zeros(N, 4)
+    # Synapses
+    g_s::MFT = zeros(N, 2)
     g_d1::MFT = zeros(N, 4)
     g_d2::MFT = zeros(N, 4)
-    h_s::MFT = zeros(N, 4)
+    h_s::MFT = zeros(N, 2)
     h_d1::MFT = zeros(N, 4)
     h_d2::MFT = zeros(N, 4)
     # Spike model and threshold
@@ -93,14 +89,7 @@ function TripodPopulation(;N::Int, d1::Vector{Dendrite}, d2::Vector{Dendrite}, s
     cd2 = [d.C for d in d2]
     gm1 = [d.gm for d in d1]
     gm2 = [d.gm for d in d2]
-    dend_syn = SNN.synapsearray(dend_syn)
-    soma_syn = SNN.synapsearray(soma_syn)
-    τr = SNN.SArray{Tuple{4,2}}(hcat([[1/r.τr for r in dend_syn], [1/r.τr for r in soma_syn]]...))
-    τd = SNN.SArray{Tuple{4,2}}(hcat([[1/r.τd for r in dend_syn], [1/r.τd for r in soma_syn]]...))
-    gsyn = SNN.SArray{Tuple{4,2}}(hcat([[r.gsyn for r in dend_syn], [r.gsyn for r in soma_syn]]...))
-    E_rev = SNN.SArray{Tuple{4,2}}(hcat([[r.E_rev for r in dend_syn], [r.E_rev for r in soma_syn]]...))
-    rtypes = SNN.SArray{Tuple{4,2}}(hcat([[r.type for r in dend_syn], [r.type for r in soma_syn]]...))
-    return Tripod(N=N, τr=τr, τd=τd, gsyn=gsyn, rtypes=rtypes, E_rev=E_rev, NMDA=NMDA, gax1=gax1, gax2=gax2, cd1=cd1, cd2=cd2, gm1=gm1, gm2=gm2, soma_syn=soma_syn, dend_syn=dend_syn)
+    return Tripod(N=N, d1=d1, d2=d2, soma_syn=synapsearray(soma_syn), dend_syn=synapsearray(dend_syn), NMDA=NMDA, gax1=gax1, gax2=gax2, cd1=cd1, cd2=cd2, gm1=gm1, gm2=gm2)
 end
 
 #const dend_receptors::SVector{Symbol,3} = [:AMPA, :NMDA, :GABAa, :GABAb]
@@ -109,28 +98,33 @@ const soma_rr = SA[:AMPA,:GABAa]
 const dend_rr = SA[:AMPA,:NMDA,:GABAa,:GABAb]
 
 function integrate!(p::Tripod, param::AdExTripod, dt::Float32)
-    @unpack N, v_s, w_s, v_d1, v_d2, g_s, g_d1, g_d2, h_s, h_d1, h_d2, fire, θ, after_spike, postspike, Δv, Δv_temp = p
+    @unpack N, v_s, w_s, v_d1, v_d2, g_s, g_d1, g_d2, h_s, h_d1, h_d2, d1, d2, fire, θ, after_spike, postspike, Δv, Δv_temp = p
     @unpack Er, up, idle, BAP, AP_membrane, Vr, Vt, τw, a, b = param
+    @unpack dend_syn, soma_syn = p
     @unpack gax1, gax2, gm1, gm2, cd1, cd2 = p
-    @unpack τr, τd = p
 
     ## Update all synaptic conductance
     # for dendrites
-    @inbounds for n in axes(τr,1)
+    for n in eachindex(dend_syn)
+        @unpack τr⁻, τd⁻ = dend_syn[n]
         @fastmath @simd for i = 1:N
-                # dendrites x = 1
-                g_d1[i, n] = exp32(-dt * τr[n,1]) * (g_d1[i, n] + dt * h_d1[i, n])
-                h_d1[i, n] = exp32(-dt * τr[n,1]) * (h_d1[i, n])
-                g_d2[i, n] = exp32(-dt * τd[n,1]) * (g_d2[i, n] + dt * h_d2[i, n])
-                h_d2[i, n] = exp32(-dt * τr[n,1]) * (h_d2[i, n])
-                #soma x = 2
-                g_s[i, n] =  exp32(-dt * τd[n,2]) * (g_s[i, n] + dt * h_s[i, n])
-                h_s[i, n] =  exp32(-dt * τr[n,2]) * (h_s[i, n])
+            g_d1[i, n] = exp32(-dt * τd⁻) * (g_d1[i, n] + dt * h_d1[i, n])
+            h_d1[i, n] = exp32(-dt * τr⁻) * (h_d1[i, n])
+            g_d2[i, n] = exp32(-dt * τd⁻) * (g_d2[i, n] + dt * h_d2[i, n])
+            h_d2[i, n] = exp32(-dt * τr⁻) * (h_d2[i, n])
+        end
+    end
+    # for soma
+   for n in eachindex(soma_syn)
+        @unpack τr⁻, τd⁻ = soma_syn[n]
+        @fastmath @simd for i = 1:N
+            g_s[i, n] = exp32(-dt * τd⁻) * (g_s[i, n] + dt * h_s[i, n])
+            h_s[i, n] = exp32(-dt * τr⁻) * (h_s[i, n])
         end
     end
 
     # update the neurons
-    @inbounds @fastmath @simd for i = 1:N
+    @fastmath @simd for i = 1:N
         if after_spike[i] > idle
             v_s[i] = BAP
             ## backpropagation effect
@@ -167,13 +161,13 @@ function integrate!(p::Tripod, param::AdExTripod, dt::Float32)
     # reset firing
     fire .= false
     @inbounds @fastmath @simd for i = 1:N
-        θ[i] -= dt * (θ[i] - Vt) / getfield(postspike,:τA)
+        θ[i] -= dt * (θ[i] - Vt) / postspike.τA
         after_spike[i] -= 1
         if after_spike[i] < 0
             ## spike ?
             if v_s[i] > θ[i] + 10.f0
                 fire[i] = true
-                θ[i] += getfield(postspike,:A)
+                θ[i] += postspike.A
                 v_s[i] = AP_membrane
                 w_s[i] += b ##  *τw
                 after_spike[i] = (up + idle) / dt
@@ -185,43 +179,55 @@ end
 
 function update_tripod!(p::Tripod, Δv::MVector, i::Int64, param::AdExTripod, dt::Float32)
 
-    @inbounds @fastmath begin
+    @fastmath begin
 
     @unpack v_d1, v_d2, v_s, w_s, g_s, g_d1, g_d2, θ = p
     @unpack gax1, gax2, gm1, gm2, cd1, cd2 = p
-    # @unpack soma_syn, dend_syn, NMDA= p
-    @unpack gsyn, E_rev, rtypes, NMDA = p
+    @unpack soma_syn, dend_syn, NMDA= p
     @unpack is, cs = p
 
     #compute axial currents
     cs[1] = -( (v_d1[i] + Δv[2] * dt) - (v_s[i] + Δv[1] * dt)) * gax1[i]
     cs[2] = -( (v_d2[i] + Δv[3] * dt) - (v_s[i] + Δv[1] * dt)) * gax2[i]
 
-    @simd for _i in 1:3
-        is[_i] = 0.f0
-    end
-    @simd for r in axes(gsyn,1)
-        if rtypes[r,1] =="nmda"
-            is[2] += gsyn[r,1] * g_d1[i, r]*(v_d1[i] + Δv[2] * dt - E_rev[r,1]) *(1.f0+(NMDA.mg/NMDA.b)*exp32(NMDA.k*(v_d1[i] + Δv[2] * dt)))^-1
-            is[3] += gsyn[r,1] * g_d2[i, r]*(v_d2[i] + Δv[3] * dt - E_rev[r,1]) *(1.f0+(NMDA.mg/NMDA.b)*exp32(NMDA.k*(v_d2[i] + Δv[3] * dt)))^-1
-            is[1] += gsyn[r,2] * g_s[i, r]*(v_s[i] + Δv[1] * dt - E_rev[r,2]) 
-        else
-            is[2] += gsyn[r,1] * g_d1[i, r]*(v_d1[i] + Δv[2] * dt - E_rev[r,1])
-            is[3] += gsyn[r,1] * g_d2[i, r]*(v_d2[i] + Δv[3] * dt - E_rev[r,1])
-            # (gsyn[n,2]==0) && (continue)
-            is[1] += gsyn[r,2] *  g_s[i, r]*(v_s[i] +  Δv[1] * dt - E_rev[r,2]) 
-        end
-    end
-    @simd for _i in 1:3
-        is[_i] = clamp(is[_i], -500,500)
-    end
+    # for _i in 1:3
+    #     is[_i] = 0.f0
+    # end
+    # for r in eachindex(soma_syn)
+    #     @unpack gsyn, E_rev, type = soma_syn[r]
+    #     is[1] += gsyn * g_s[i, r]*(v_s[i] + Δv[1] * dt - E_rev) 
+    # end
+    # @simd for r in eachindex(dend_syn)
+    #     begin
+    #         @unpack gsyn, E_rev, type = dend_syn[r]
+    #         if type == "nmda"
+    #             is[2] += gsyn * g_d1[i, r]*(v_d1[i] + Δv[2] * dt - E_rev) *(1.f0+(NMDA.mg/NMDA.b)*exp32(NMDA.k*(v_d1[i] + Δv[2] * dt)))^-1
+    #             is[3] += gsyn * g_d2[i, r]*(v_d2[i] + Δv[3] * dt - E_rev) *(1.f0+(NMDA.mg/NMDA.b)*exp32(NMDA.k*(v_d2[i] + Δv[3] * dt)))^-1
+    #         else
+    #             is[2] +=    gsyn * g_d1[i, r]*(v_d1[i] + Δv[2] * dt - E_rev)
+    #             is[3] += gsyn * g_d2[i, r]*(v_d2[i] + Δv[3] * dt - E_rev)
+    #         end
+    #     end
+    # end
+    # for _i in 1:3
+    #     is[_i] = clamp(is[_i], -500,500)
+    # end
 
     # update membrane potential
-    Δv[1] = ΔvAdEx(v_s[i] + Δv[1] * dt, w_s[i], θ[i], + sum(cs), is[1], param)
-    Δv[2] = ((-(v_d1[i] + Δv[2] * dt) + param.Er) * gm1[i] - is[2] + cs[1]) / cd1[i] 
-    Δv[3] = ((-(v_d2[i] + Δv[3] * dt) + param.Er) * gm2[i] - is[3] + cs[2]) / cd2[i] 
+    Δv[1] = ΔvAdEx(v_s[i] + Δv[1] * dt, w_s[i], θ[i], sum(cs), is[1], param)
+    Δv[2] = ((-v_d1[i] + Δv[2] * dt + param.Er) * gm1[i] - is[2] - cs[1]) / cd1[i] 
+    Δv[3] = ((-v_d2[i] + Δv[3] * dt + param.Er) * gm2[i] - is[3] - cs[2]) / cd2[i] 
+    # Δv[3] = ΔvDend(v_d2[i] + Δv[3] * dt, -cs[2], is[3], d2[i])
     end
 
+    # Debug to be removed later
+    # @debug "currents", _c1, _c2
+    # @unpack i1, i2,is, c1, c2, Δs,Δd2,Δd1,   θ = p
+    # c1[i], c2[i] = _c1, _c2
+    # i1[i], i2[i], is[i] = _i1, _i2, _is
+    # Δs[i] = Δv[1]
+    # Δd1[i] = Δv[2]
+    # Δd2[i] = Δv[2]
 end
 
 

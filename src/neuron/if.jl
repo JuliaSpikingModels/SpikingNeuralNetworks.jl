@@ -1,4 +1,3 @@
-abstract type AbstractIFParameter end
 @snn_kw struct IFParameter{FT = Float32} <: AbstractIFParameter
     τm::FT = 20ms
     Vt::FT = -50mV
@@ -68,8 +67,6 @@ function integrate!(p::IF, param::IFParameter, dt::Float32)
         fire[i] = v[i] > Vt
         v[i] = ifelse(fire[i], Vr, v[i])
 
-        # if fire[i]
-        #     timespikes[i] = t
-        # end 
+
     end
 end
