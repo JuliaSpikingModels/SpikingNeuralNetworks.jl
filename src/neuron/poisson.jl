@@ -2,9 +2,12 @@
     rate::FT = 1Hz
 end
 
-@snn_kw mutable struct Poisson{VFT = Vector{Float32},VBT = Vector{Bool}}
+@snn_kw mutable struct Poisson{VFT = Vector{Float32},VBT = Vector{Bool},IT = Int32}
     param::PoissonParameter = PoissonParameter()
-    N::Int32 = 100
+    t::VFT = [0.0f0] ## keep the time of the simulation
+    N::IT = 100
+    rate::VFT = fill(param.rate, N)
+    # rt::VFT=[-1f0] ## add a variable rate for the population
     randcache::VFT = rand(N)
     fire::VBT = zeros(Bool, N)
     records::Dict = Dict()
@@ -16,12 +19,10 @@ end
 Poisson
 
 function integrate!(p::Poisson, param::PoissonParameter, dt::Float32)
-    @unpack N, randcache, fire = p
-    @unpack rate = param
-    prob = rate * dt
+    @unpack N, randcache, fire, rate = p
     rand!(randcache)
     @inbounds for i = 1:N
-        fire[i] = randcache[i] < prob
+        fire[i] = randcache[i] < rate[i] * dt
     end
 end
 
