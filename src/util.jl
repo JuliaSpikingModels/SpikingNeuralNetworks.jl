@@ -7,9 +7,9 @@ function connect!(c, j, i, σ = 1e-6)
 end
 
 
+# """function dsparse
 
 function dsparse(A)
-    # Sparse arrays are arrays that contain enough zeros that storing 
     # them in a special data structure leads to savings in space and execution time, compared to dense arrays.
     At = sparse(A') # Transposes the input sparse matrix A and stores it as At.
     colptr = A.colptr # Retrieves the column pointer array from matrix A
@@ -17,11 +17,13 @@ function dsparse(A)
     I = rowvals(A) # Retrieves the row indices of non-zero elements from matrix A
     V = nonzeros(A) # Retrieves the values of non-zero elements from matrix A
     J = zero(I) # Initializes an array J of the same size as I filled with zeros.
+    index = zeros(Int, size(I)) # Initializes an array index of the same size as I filled with zeros.
+
+
     # FIXME: Breaks when A is empty
     for j = 1:(length(colptr)-1) # Starts a loop iterating through the columns of the matrix.
         J[colptr[j]:(colptr[j+1]-1)] .= j # Assigns column indices to J for each element in the column range.
-    end 
-    index = zeros(Int,size(I)) # Initializes an array index of the same size as I filled with zeros.
+    end
     coldown = zeros(eltype(index), length(colptr) - 1) # Initializes an array coldown with a specific type and size.
     for i = 1:(length(rowptr)-1) # Iterates through the rows of the transposed matrix At.
         for st = rowptr[i]:(rowptr[i+1]-1) # Iterates through the range of elements in the current row.
@@ -48,7 +50,7 @@ function record!(obj)
         if haskey(obj.records, :indices) && haskey(obj.records[:indices], key)
             indices = get(obj.records, :indices, nothing)
             ind = get(indices, key, nothing)
-            push!(val, getindex(getfield(obj, key),ind )) # getindex returns the subset of `getfield(obj, sym)` at the given index `ind`
+            push!(val, getindex(getfield(obj, key), ind)) # getindex returns the subset of `getfield(obj, sym)` at the given index `ind`
         else
             # copy() is necessary here because we want to push the same value but store it at a different memory location (so that when one is changed, the other is not)
             push!(val, copy(getfield(obj, key)))
@@ -59,20 +61,20 @@ end
 function monitor(obj, keys)
     """
     Initialize dictionary records for the given object, by assigning empty vectors to the given keys
-    
+
     # Arguments
     - `obj`: An object whose variables will be monitored
     - `keys`: The variables to be monitored
-    
+
     """
     for key in keys
-        @info key
+        # @info key
         if isa(key, Tuple)
             sym, ind = key
             if !haskey(obj.records, :indices)
-                obj.records[:indices] = Dict{Symbol, Vector{Int}}()
+                obj.records[:indices] = Dict{Symbol,Vector{Int}}()
             end
-            push!(obj.records[:indices], sym=>ind)
+            push!(obj.records[:indices], sym => ind)
         else
             sym = key
         end
@@ -100,11 +102,27 @@ end
 
 function clear_records(obj)
     for (key, val) in obj.records
+        key == :indices && continue
         empty!(val)
     end
 end
+
+function clear_records(obj, sym::Symbol)
+    for (key, val) in obj.records
+        (key == sym) && (empty!(val))
+    end
+end
+
+function clear_records(objs::AbstractArray)
+    for obj in objs
+        clear_records(obj)
+    end
+end
+
 function clear_monitor(obj)
-    obj.records= Dict()
+    for (k, val) in obj.records
+        delete!(obj.records, k)
+    end
 end
 
 @inline function exp32(x::Float32)
