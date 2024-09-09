@@ -45,15 +45,16 @@ function integrate!(p::IF, param::IFParameter, dt::Float32)
         #     continue
         # end
 
-        v[i] += dt * (
-            - (v[i] - El)  # leakage
-            + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i]) #synaptic term
-        ) / τm
+        v[i] +=
+            dt * (
+                -(v[i] - El)  # leakage
+                + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i]) #synaptic term
+            ) / τm
 
-        ge[i] += dt * (- ge[i] / τde + he[i]) 
+        ge[i] += dt * (-ge[i] / τde + he[i])
         he[i] -= dt * he[i] / τre
 
-        gi[i] += dt * (- gi[i] / τdi + hi[i])
+        gi[i] += dt * (-gi[i] / τdi + hi[i])
         hi[i] -= dt * hi[i] / τri
     end
 

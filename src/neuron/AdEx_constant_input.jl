@@ -49,13 +49,13 @@ function integrate!(p::AdExConst, param::AdExConstParameter, dt::Float32)
         # Membrane potential
         v[i] +=
             dt * (
-                - (v[i] - El)  # leakage
+                -(v[i] - El)  # leakage
                 + ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
                 + R * 250pA  # constant input current
                 - R * w[i] # adaptation
             ) / τm
 
-        w[i] += dt * (a * (v[i] - El) - w[i]) / τw        
+        w[i] += dt * (a * (v[i] - El) - w[i]) / τw
     end
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step

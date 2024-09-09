@@ -36,12 +36,11 @@ function integrate!(p::IFConst, param::IFConstParameter, dt::Float32)
         # end
 
         # Membrane potential
-        v[i] +=
-            dt * (
-                - (v[i] - El)  # leakage
-                + R * 200pA  # constant input current
-            ) / τm
-        
+        v[i] += dt * (
+            -(v[i] - El)  # leakage
+            + R * 200pA  # constant input current
+        ) / τm
+
     end
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step

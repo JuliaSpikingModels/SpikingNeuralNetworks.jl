@@ -49,7 +49,8 @@ end
 
 function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @unpack N, v, w, fire, θ, I, ge, gi, he, hi, records, timespikes = p
-    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, E_i, E_e, At, τT = param
+    @unpack τm, Vt, Vr, El, R, ΔT, τw, a, b, τabs, τre, τde, τri, τdi, E_i, E_e, At, τT =
+        param
     @inbounds for i ∈ 1:N
 
         # timespikes[i] -= -1
@@ -66,21 +67,24 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
         # Membrane potential
         v[i] +=
             dt * (
-                - (v[i] - El)  # leakage
-                + ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
-                + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i]) #synaptic term: conductance times membrane potential difference gives synaptic current
+                -(v[i] - El)  # leakage
+                +
+                ΔT * exp((v[i] - θ[i]) / ΔT) # exponential term
+                +
+                R * ge[i] * (E_e - v[i]) +
+                R * gi[i] * (E_i - v[i]) #synaptic term: conductance times membrane potential difference gives synaptic current
                 - R * w[i] # adaptation
             ) / τm
 
         # Double exponential
-        ge[i] += dt * (- ge[i] / τde + he[i]) 
+        ge[i] += dt * (-ge[i] / τde + he[i])
         he[i] -= dt * he[i] / τre
 
-        gi[i] += dt * (- gi[i] / τdi + hi[i])
+        gi[i] += dt * (-gi[i] / τdi + hi[i])
         hi[i] -= dt * hi[i] / τri
 
         θ[i] += dt * (Vt - θ[i]) / τT
-        
+
     end
 
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
