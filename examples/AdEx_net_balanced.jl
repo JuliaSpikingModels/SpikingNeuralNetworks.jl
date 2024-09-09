@@ -41,7 +41,7 @@ plot(
     xlabel = "Input to I neurons (mA)",
     ylabel = "Firing rate (Hz)",
     lc = [:red :blue],
-    lw = 4
+    lw = 4,
 )
 ##
 

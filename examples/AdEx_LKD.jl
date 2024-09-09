@@ -11,13 +11,42 @@ using Logging
 τri = 0.5ms # Rise time for inhibitory synapses 
 τdi = 2ms # Decay time for inhibitory synapses
 
-LKD_AdEx_exc = 
-    AdExParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -70mV, R = 20ms/300SNN.pF, ΔT = 2mV, τw = 150ms, a = 4nS,
-    b = 0.805SNN.pA, τabs = 1ms, τre = τre, τde = τde, τri = τri, τdi = τdi, E_i = -75mV, E_e = 0mV, At = 10mV, τT = 30ms)
+LKD_AdEx_exc = AdExParameter(
+    τm = 20ms,
+    Vt = -52mV,
+    Vr = -60mV,
+    El = -70mV,
+    R = 20ms / 300SNN.pF,
+    ΔT = 2mV,
+    τw = 150ms,
+    a = 4nS,
+    b = 0.805SNN.pA,
+    τabs = 1ms,
+    τre = τre,
+    τde = τde,
+    τri = τri,
+    τdi = τdi,
+    E_i = -75mV,
+    E_e = 0mV,
+    At = 10mV,
+    τT = 30ms,
+)
 
-LKD_IF_inh =
-    IFParameter(τm = 20ms, Vt = -52mV, Vr = -60mV, El = -62mV, R = 20ms/300SNN.pF, ΔT = 2mV, τre = τre, τde = τde, τri = τri, τdi = τdi, 
-    E_i = -75mV, E_e = 0mV, τabs = 1ms)
+LKD_IF_inh = IFParameter(
+    τm = 20ms,
+    Vt = -52mV,
+    Vr = -60mV,
+    El = -62mV,
+    R = 20ms / 300SNN.pF,
+    ΔT = 2mV,
+    τre = τre,
+    τde = τde,
+    τri = τri,
+    τdi = τdi,
+    E_i = -75mV,
+    E_e = 0mV,
+    τabs = 1ms,
+)
 
 # inputs, the kHz is obtained by the N*ν, so doing the spikes (read eqs. 4 section)
 N = 1000
@@ -37,8 +66,8 @@ E = SNN.AdEx(; N = 4000, param = LKD_AdEx_exc)
 I = SNN.IF(; N = 1000, param = LKD_IF_inh)
 
 EI = SNN.SpikingSynapse(E, I, :ge; σ = σEI, p = 0.2)
-EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param=SNN.vSTDPParameter()) 
-IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param=SNN.iSTDPParameter())
+EE = SNN.SpikingSynapse(E, E, :ge; σ = σEE, p = 0.2, param = SNN.vSTDPParameter())
+IE = SNN.SpikingSynapse(I, E, :gi; σ = σIE, p = 0.2, param = SNN.iSTDPParameter())
 II = SNN.SpikingSynapse(I, I, :gi; σ = σII, p = 0.2)
 
 ProjE = SNN.SpikingSynapse(Input_E, E, :ge; σ = σ_in_E, p = p_in)
@@ -51,12 +80,11 @@ Random.seed!(28)
 SNN.monitor([E, I], [:fire])
 SNN.train!(P, C; duration = 700ms)
 
-p1 = plot(SNN.vecplot(E,:v),
-xlabel = "Time (ms)", 
-ylabel = "Membrane Potential (mV)", 
-p2 = plot(SNN.vecplot(E,:w),
-xlabel = "Time (ms)",
-ylabel = "Adaptation current (pA)"))
-plot(p1,p2, size=(1100,450), title = "AdEx neurons with Poisson inputs")
+p1 = plot(
+    SNN.vecplot(E, :v),
+    xlabel = "Time (ms)",
+    ylabel = "Membrane Potential (mV)",
+    p2 = plot(SNN.vecplot(E, :w), xlabel = "Time (ms)", ylabel = "Adaptation current (pA)"),
+)
+plot(p1, p2, size = (1100, 450), title = "AdEx neurons with Poisson inputs")
 # SNN.raster([E, I], [0, 1] .* 70e1)
-    
