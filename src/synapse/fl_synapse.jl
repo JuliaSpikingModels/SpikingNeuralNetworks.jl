@@ -1,7 +1,6 @@
-struct FLSynapseParameter
-end
+struct FLSynapseParameter end
 
-@snn_kw mutable struct FLSynapse{MFT=Matrix{Float32},VFT=Vector{Float32},FT=Float32}
+@snn_kw mutable struct FLSynapse{MFT = Matrix{Float32},VFT = Vector{Float32},FT = Float32}
     param::FLSynapseParameter = FLSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -26,17 +25,18 @@ function FLSynapse(pre, post; σ = 1.5, p = 0.0, α = 1, kwargs...)
     W = σ * 1 / √pre.N * randn(post.N, pre.N) # normalized recurrent weight
     w = 1 / √post.N * (2rand(post.N) .- 1) # initial output weight
     u = 2rand(post.N) .- 1 # initial force weight
-    P = α * I(post.N) # initial inverse of C = <rr'>
+    P = α * I(post.N) # initial inverse of   = <rr'>
     q = zeros(post.N)
-    FLSynapse(;@symdict(W, rI, rJ, g, P, q, u, w)..., kwargs...)
+    FLSynapse(; @symdict(W, rI, rJ, g, P, q, u, w)..., kwargs...)
 end
 
 function forward!(c::FLSynapse, param::FLSynapseParameter)
     @unpack W, rI, rJ, g, P, q, u, w, z = c
-    z = dot(w, rI)
+    c.z = dot(w, rI)
+    # @show z
     mul!(q, P, rJ)
     mul!(g, W, rJ)
-    axpy!(z, u, g)
+    axpy!(c.z, u, g)
 end
 
 function plasticity!(c::FLSynapse, param::FLSynapseParameter, dt::Float32, t::Float32)

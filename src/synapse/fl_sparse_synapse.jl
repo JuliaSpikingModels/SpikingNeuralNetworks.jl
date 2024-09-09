@@ -1,7 +1,6 @@
-struct FLSparseSynapseParameter
-end
+struct FLSparseSynapseParameter end
 
-@snn_kw mutable struct FLSparseSynapse{VFT=Vector{Float32},FT=Float32}
+@snn_kw mutable struct FLSparseSynapse{VFT = Vector{Float32},FT = Float32}
     param::FLSparseSynapseParameter = FLSparseSynapseParameter()
     colptr::Vector{Int32} # column pointer of sparse W
     I::Vector{Int32}      # postsynaptic index of W
@@ -31,17 +30,17 @@ function FLSparseSynapse(pre, post; σ = 1.5, p = 0.0, α = 1, kwargs...)
     q = zeros(post.N)
     u = 2rand(post.N) - 1
     w = 1 / √post.N * (2rand(post.N) - 1)
-    FLSparseSynapse(;@symdict(colptr, I, W, rI, rJ, g, P, q, u, w)..., kwargs...)
+    FLSparseSynapse(; @symdict(colptr, I, W, rI, rJ, g, P, q, u, w)..., kwargs...)
 end
 
 function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
     @unpack W, rI, rJ, g, P, q, u, w, f, z = c
-    z = dot(w, rI)
-    g .= z .* u
+    c.z = dot(w, rI)
+    g .= c.z .* u
     fill!(q, zero(Float32))
-    @inbounds for j in 1:(length(colptr) - 1)
+    @inbounds for j = 1:(length(colptr)-1)
         rJj = rJ[j]
-        for s = colptr[j]:(colptr[j+1] - 1)
+        for s = colptr[j]:(colptr[j+1]-1)
             i = I[s]
             q[i] += P[s] * rJj
             g[i] += W[s] * rJj
@@ -49,11 +48,17 @@ function forward!(c::FLSparseSynapse, param::FLSparseSynapseParameter)
     end
 end
 
-function plasticity!(c::FLSparseSynapse, param::FLSparseSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(
+    c::FLSparseSynapse,
+    param::FLSparseSynapseParameter,
+    dt::Float32,
+    t::Float32,
+)
+    @unpack rI, P, q, w, f, z = c
     C = 1 / (1 + dot(q, rI))
     BLAS.axpy!(C * (f - z), q, w)
-    @inbounds for j in 1:(length(colptr) - 1)
-        for s in colptr[j]:(colptr[j+1] - 1)
+    @inbounds for j = 1:(length(colptr)-1)
+        for s = colptr[j]:(colptr[j+1]-1)
             P[s] += -C * q[I[s]] * q[j]
         end
     end

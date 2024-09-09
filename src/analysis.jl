@@ -1,0 +1,60 @@
+using RollingFunctions
+
+"""
+    firing_rate_average(P; dt=0.1ms)
+
+Calculates and returns the average firing rates of neurons in a network.
+
+# Arguments:
+- `P`: A structure containing neural data, with a key `:fire` in its `records` field which stores spike information for each neuron.
+- `dt`: An optional parameter specifying the time interval (default is 0.1ms).
+
+# Returns:
+An array of floating point values representing the average firing rate for each neuron.
+
+# Usage:# Notes:
+Each row of `P.records[:fire]` represents a neuron, and each column represents a time point. The value in a cell indicates whether that neuron has fired at that time point (non-zero value means it has fired).
+The firing rate of a neuron is calculated as the total number of spikes divided by the total time span.
+"""
+function firing_rate_average(P; dt = 0.1ms)
+    @assert haskey(P.records, :fire)
+    spikes = hcat(P.records[:fire]...)
+    time_span = size(spikes, 2) / 1000 * dt
+    rates = Vector{Float32}()
+    for spike in eachrow(spikes)
+        push!(rates, sum(spike) / time_span)
+    end
+    return rates
+end
+
+"""
+    firing_rate(P, τ; dt=0.1ms)
+
+Calculate the firing rate of neurons.
+
+# Arguments
+- `P`: A struct or object containing neuron information, including records of when each neuron fires.
+- `τ`: The time window over which to calculate the firing rate.
+
+# Keywords
+- `dt`: The time step for calculation (default is 0.1 ms).
+
+# Returns
+A 2D array with firing rates. Each row corresponds to a neuron and each column to a time point.
+
+# Note
+This function assumes that the firing records in `P` are stored as columns corresponding to different time points. 
+The result is normalized by `(dt/1000)` to account for the fact that `dt` is typically in milliseconds.
+
+"""
+function firing_rate(P, τ; dt = 0.1ms)
+    spikes = hcat(P.records[:fire]...)
+    time_span = round(Int, size(spikes, 2) * dt)
+    rates = zeros(P.N, time_span)
+    L = round(Int, time_span - τ) * 10
+    @fastmath @inbounds for s in axes(spikes, 1)
+        T = round(Int, τ / dt)
+        rates[s, round(Int, τ)+1:end] = rollmean(spikes[s, :], T)[1:10:L] ./ (dt / 1000)
+    end
+    return rates
+end

@@ -1,5 +1,5 @@
-E = SNN.HH(;N = 3200)
-I = SNN.HH(;N = 800)
+E = SNN.HH(; N = 3200)
+I = SNN.HH(; N = 800)
 EE = SNN.SpikingSynapse(E, E, :ge; σ = 6nS, p = 0.02)
 EI = SNN.SpikingSynapse(E, I, :ge; σ = 6nS, p = 0.02)
 IE = SNN.SpikingSynapse(I, E, :gi; σ = 67nS, p = 0.02)

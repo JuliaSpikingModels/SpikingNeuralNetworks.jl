@@ -1,45 +1,93 @@
 using .Plots
 # FIXME: using StatsBase
 
-function raster(p)
+function raster(p, interval = nothing; dt)
     fire = p.records[:fire]
     x, y = Float32[], Float32[]
-    for t = eachindex(fire)
+    for t in eachindex(fire)
         for n in findall(fire[t])
-            push!(x, t)
-            push!(y, n)
+            if isnothing(interval) || (t * dt > interval[1] && t * dt < interval[2])
+                push!(x, t * dt)
+                push!(y, n)
+            end
         end
     end
     x, y
 end
 
-function raster(P::Array)
+function raster(P::Array, t = nothing, dt = 0.1ms; kwargs...)
     y0 = Int32[0]
-    X = Float32[]; Y = Float32[]
+    X = Float32[]
+    Y = Float32[]
     for p in P
-        x, y = raster(p)
+        x, y = raster(p, t; dt = dt)
         append!(X, x)
         append!(Y, y .+ sum(y0))
         push!(y0, p.N)
     end
-    plt = scatter(X, Y, m = (1, :black), leg = :none,
-                  xaxis=("t", (0, Inf)), yaxis = ("neuron",))
+    plt = scatter(
+        X,
+        Y,
+        m = (1, :black),
+        leg = :none,
+        xaxis = ("t", (0, Inf)),
+        yaxis = ("neuron",),
+    )
     y0 = y0[2:end-1]
     !isempty(y0) && hline!(plt, cumsum(y0), linecolor = :red)
+    !isnothing(t) && plot!(xlims = t)
     return plt
 end
 
-function vecplot(p, sym)
-    v = getrecord(p, sym)
-    y = hcat(v...)'
-    x = 1:length(v)
-    plot(x, y, leg = :none,
-    xaxis=("t", extrema(x)),
-    yaxis=(string(sym), extrema(y)))
+function vecplot(p, sym; r::AbstractArray{T} = 0:-1, dt = 0.1, kwargs...) where {T<:Real}
+    vecplot!(plot(), p, sym; r = r, dt = dt, kwargs...)
 end
 
-function vecplot(P::Array, sym)
-    plts = [vecplot(p, sym) for p in P]
+function vecplot!(
+    my_plot,
+    p,
+    sym;
+    r::AbstractArray{T} = 0:-1,
+    dt = 0.1,
+    kwargs...,
+) where {T<:Real}
+    v = getrecord(p, sym)
+    y = hcat(v...)'
+    if !isempty(r)
+        y = y[r, :]
+        x = r .* dt
+    else
+        x = dt:dt:length(v)*dt
+    end
+    plot!(
+        my_plot,
+        x,
+        y,
+        leg = :none,
+        xaxis = ("t", extrema(x)),
+        yaxis = (string(sym), extrema(y));
+        kwargs...,
+    )
+end
+
+function vecplot(P::Array, sym; kwargs...)
+    plts = [vecplot(p, sym; kwargs...) for p in P]
+    N = length(plts)
+    plot(plts..., size = (600, 400N), layout = (N, 1))
+end
+
+function vecplot!(P::Array, sym; kwargs...)
+    plts = [vecplot(p, sym; kwargs...) for p in P]
+    my_plot = plot()
+    for p in P
+        vecplot!(my_plot, p, sym; kwargs...)
+    end
+    plot!(my_plot; kwargs...)
+    return my_plot
+end
+
+function vecplot(P, syms::Array; kwargs...)
+    plts = [vecplot(P, sym; kwargs...) for sym in syms]
     N = length(plts)
     plot(plts..., size = (600, 400N), layout = (N, 1))
 end
@@ -88,14 +136,14 @@ end
 function activity(P::Array)
     A = activity.(P)
     t = 1:length(P[1].records[:fire])
-    plot(t, A, leg=:none, xaxis=("t",), yaxis=("A", (0, Inf)))
+    plot(t, A, leg = :none, xaxis = ("t",), yaxis = ("A", (0, Inf)))
 end
 
 function if_curve(model, current; neuron = 1, dt = 0.1ms, duration = 1second)
     E = model(neuron)
     monitor(E, [:fire])
     f = Float32[]
-    for I = current
+    for I in current
         clear_records(E)
         E.I = [I]
         SNN.sim!([E], []; dt = dt, duration = duration)

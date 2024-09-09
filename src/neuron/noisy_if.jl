@@ -1,8 +1,8 @@
-@snn_kw struct NoisyIFParameter{FT=Float32} <: AbstractIFParameter
+@snn_kw struct NoisyIFParameter{FT = Float32} <: AbstractIFParameter
     σ::FT = 0
 end
 
-@snn_kw mutable struct NoisyIF{VFT=Vector{Float32}} <: AbstractIF
+@snn_kw mutable struct NoisyIF{VFT = Vector{Float32}} <: AbstractIF
     param::NoisyIFParameter = NoisyIFParameter()
     N::Int32 = 100
     randncache::VFT = randn(N)
