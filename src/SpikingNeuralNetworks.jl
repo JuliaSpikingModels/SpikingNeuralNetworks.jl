@@ -11,16 +11,15 @@ using UnPack
 using Random
 using Logging
 using StaticArrays
-using TimerOutputs
 using ProgressBars
 
-const tmr = TimerOutput()
 
 
 include("unit.jl")
 include("main.jl")
 include("util.jl")
 include("structs.jl")
+include("analysis.jl")
 
 include("neuron/if.jl")
 include("neuron/if_constant_input.jl")
@@ -45,7 +44,7 @@ include("neuron/Tripod.jl")
 
 
 function __init__()
-@require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plot.jl")
+    @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plot.jl")
 end
 
 end
