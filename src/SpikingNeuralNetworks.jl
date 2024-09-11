@@ -41,6 +41,9 @@ include("synapse/spike_rate_synapse.jl")
 include("synapse/spiking_synapses/base.jl")
 include("neuron/Tripod.jl")
 
+include("network/background.jl")
+include("network/inputs.jl")
+
 
 
 function __init__()
