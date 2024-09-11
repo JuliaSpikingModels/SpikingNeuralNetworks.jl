@@ -8,7 +8,7 @@
 
 ```julia
 using Pkg
-pkg"add SpikingNeuralNetworks"
+pkg"dev SpikingNeuralNetworks"
 ```
 
 ## Documentation
