@@ -9,6 +9,8 @@ abstract type NormParam end
 This struct holds the parameters for multiplicative normalization. 
 It includes a timescale τ (default 0.0) and an operator (default multiplication).
 """
+MultiplicativeNorm
+
 @snn_kw struct MultiplicativeNorm{FT = Int32} <: NormParam
     τ::Float32 = 0.0f0
     operator::Function = *
@@ -20,6 +22,8 @@ end
 This struct holds the parameters for additive normalization. 
 It includes a timescale τ (default 0.0) and an operator (default addition).
 """
+AdditiveNorm
+
 @snn_kw struct AdditiveNorm{FT = Float32} <: NormParam
     τ::Float32 = 0.0f0
     operator::Function = +
@@ -36,6 +40,8 @@ A struct that holds parameters for synapse normalization, including:
 - μ: A vector of mean synaptic weights.
 - records: A dictionary for storing additional data.
 """
+SynapseNormalization
+
 @snn_kw struct SynapseNormalization{
     VFT = Vector{Float32},
     VIT = Vector{Int32},

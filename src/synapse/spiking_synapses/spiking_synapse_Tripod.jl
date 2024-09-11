@@ -25,7 +25,6 @@ g_type = SubArray{
 	J::VIT      # presynaptic index of W
 	index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
 	W::VFT  # synaptic weight
-	W0::VFT = W  # initial synaptic weight
 	v_post::VFT                              #! This will be that target
 	g::MFT  # rise conductance               #! This will be the rise conductance
 	# target receptors specific alpha

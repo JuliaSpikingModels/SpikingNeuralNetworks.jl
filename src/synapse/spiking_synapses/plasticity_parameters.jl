@@ -25,7 +25,7 @@ abstract type iSTDPParameter <: SpikingSynapseParameter end
     r::FT = 3Hz
     τy::FT = 50ms
     Wmax::FT = 243pF
-    Wmin::FT = 0.5pF
+    Wmin::FT = 0.01pF
 end
 
 @snn_kw struct iSTDPParameterPotential{FT = Float32} <: iSTDPParameter
@@ -33,5 +33,5 @@ end
     v0::FT = -50mV
     τy::FT = 200ms
     Wmax::FT = 243pF
-    Wmin::FT = 0.7pF
+    Wmin::FT = 0.01pF
 end
