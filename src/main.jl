@@ -13,10 +13,11 @@ function sim!(P::Vector, C::Vector, dt::Float32)
     end
 end
 
-function sim!(P, C; dt = 0.1f0, duration = 10.0f0)
+function sim!(P, C; dt = 0.1f0, duration = 10.0f0, pbar=false)
     dt = Float32(dt)
     duration = Float32(duration)
-    pbar = ProgressBar(0.0f0:dt:(duration-dt))
+    dts = 0.0f0:dt:(duration-dt)
+    pbar = pbar ? ProgressBar(dts) : dts
     for t in pbar
         sim!(P, C, dt)
     end
@@ -40,7 +41,7 @@ end
 function train!(P, C; dt = 0.1ms, duration = 10ms)
     dt = Float32(dt)
     pbar = ProgressBar(0.0f0:dt:(duration-dt))
-    # pbar =  0.f0:dt:(duration - dt)
+    pbar =  0.f0:dt:(duration - dt)
     for t in pbar
         train!(P, C, dt)
     end
