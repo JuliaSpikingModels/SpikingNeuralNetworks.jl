@@ -50,10 +50,10 @@ SNN.monitor(network.pop.E, [:v_d1, :v_s, :fire])
 SNN.monitor(network.pop.I1, [:fire])
 SNN.monitor(network.pop.I2, [:fire])
 
-using BenchmarkTools
-@btime SNN.sim!(populations, synapses, duration = 1000ms)
-@btime SNN.sim!(populations, synapses, duration = 1000ms)
+# using BenchmarkTools
+# @btime SNN.sim!(populations, synapses, duration = 1000ms)
+# @profview SNN.sim!(populations, synapses, duration = 1000ms)
+SNN.sim!(populations, synapses, duration = 1000ms)
 
 SNN.raster([network.pop...])
-
-@profview SNN.sim!(populations, synapses, duration = 1000ms)
+savefig(plotsdir("example_raster.pdf"))
