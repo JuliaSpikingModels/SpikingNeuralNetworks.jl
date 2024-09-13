@@ -65,6 +65,3 @@ function test_network()
 	@info "Present timing: $(data_new.timing)"
 	return true
 end
-
-
-test_network()
