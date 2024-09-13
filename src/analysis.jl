@@ -58,3 +58,33 @@ function firing_rate(P, τ; dt = 0.1ms)
     end
     return rates
 end
+
+"""
+    spiketimes(P, τ; dt = 0.1ms)
+
+This function takes in the records of a neural population `P` and time constant `τ` to calculate spike times for each neuron.
+
+# Arguments
+- `P`: A data structure containing the recorded data of a neuronal population.
+- `τ`: A time constant parameter.
+
+# Keyword Arguments
+- `dt`: The time step used for the simulation, defaults to 0.1 milliseconds.
+
+# Returns
+- `spiketimes`: An object of type `SNN.Spiketimes` which contains the calculated spike times of each neuron.
+
+# Examples
+```
+julia
+spiketimes = spike_times(population_records, time_constant)
+```
+"""
+function spiketimes(P; dt = 0.1ms)
+    spikes = hcat(P.records[:fire]...)
+    _spiketimes = Vector{Vector{Float32}}()
+    for (n, z) in enumerate(eachrow(spikes))
+        push!(_spiketimes, findall(z) * dt)
+    end
+    return SNN.Spiketimes(_spiketimes)
+end
