@@ -19,6 +19,7 @@ struct no_STDPParameter <: SpikingSynapseParameter end
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
+	normalize::SynapseNormalization
 end
 
 @snn_kw mutable struct vSTDP{
@@ -33,14 +34,14 @@ end
     J::VIT      # presynaptic index of W
     index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
     W::VFT  # synaptic weight
-    W0::VFT = deepcopy(W)
     u::VFT = zeros(length(colptr) - 1) # presynaptic spiking time
     v::VFT = zeros(length(colptr) - 1) # postsynaptic spiking time
     x::VFT = zeros(length(colptr) - 1) # postsynaptic spiking time
-    vpost::VFT = zeros(length(colptr) - 1)
+    v_post::VFT = zeros(length(colptr) - 1)
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
+	normalize::SynapseNormalization
 end
 
 @snn_kw mutable struct iSTDP{
@@ -95,15 +96,16 @@ end
 """
 SpikingSynapse
 
-function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
-    w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
-    w[findall(w .> 0)] .= σ # make all the weights the same
+function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w=nothing, kwargs...)
+    if isnothing(w)
+        w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
+    end
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
     # I: postsynaptic index of W
     # J: presynaptic index of W
-    fireI, fireJ, vpost = post.fire, pre.fire, post.v
+    fireI, fireJ, v_post = post.fire, pre.fire, post.v
     # fireI: Stored spikes postsynaptic neuron
     # fireJ: Stored spikes presynaptic neuron
     g = getfield(post, sym)
@@ -116,7 +118,7 @@ function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, kwargs...)
         )
     elseif isa(param, vSTDPParameter)
         return vSTDP(;
-            @symdict(rowptr, colptr, I, J, index, W, fireJ, vpost, g)...,
+            @symdict(rowptr, colptr, I, J, index, W, fireJ, v_post, g)...,
             kwargs...,
         )
     elseif isa(param, iSTDPParameter)
