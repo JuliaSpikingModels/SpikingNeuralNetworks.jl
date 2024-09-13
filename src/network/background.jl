@@ -24,8 +24,8 @@ Create a background feed for a population of Tripod neurons.
 
 """
 function TripodBackground(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz, v0_d1 = -50mV, v0_d2 = -50mV, σ_s = 0.5f0)
-	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_E))
-	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_I))
+	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_I))
+	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
 	inh_d1 = SNN.SynapseTripod(
 		I,
 		Tripod_pop,
@@ -61,4 +61,24 @@ function TripodBackground(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I =
 	populations = dict2ntuple(@strdict I E)
 	return (back_syn = synapses, back_pop = populations)
 end
+
+
+function AdExBackground(pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz,)
+	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_I))
+	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
+	inh = SNN.SpikingSynapse(
+		I,
+		pop,
+		:gi,
+		p = 0.2,
+		σ = 1,
+		param = SNN.iSTDPParameterRate(r = r0),
+	)
+	exc = SNN.SpikingSynapse(E, pop, :ge, p = 0.2, σ = 1.0)
+
+	synapses = dict2ntuple(@strdict exc inh)
+	populations = dict2ntuple(@strdict I E)
+	return (back_syn = synapses, back_pop = populations)
+end
+
 

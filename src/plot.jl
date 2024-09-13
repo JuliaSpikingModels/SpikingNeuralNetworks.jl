@@ -47,15 +47,18 @@ function vecplot!(
     my_plot,
     p,
     sym;
+    neurons = nothing,
     r::AbstractArray{T} = 0:-1,
     dt = 0.1,
     kwargs...,
 ) where {T<:Real}
     v = getrecord(p, sym)
     y = hcat(v...)'
+    neurons = isnothing(neurons) ? (1:size(y,2)) : neurons
+    r_dt = round.(Int, r./dt)
     if !isempty(r)
-        y = y[r, :]
-        x = r .* dt
+        y = y[r_dt, neurons]
+        x = r
     else
         x = dt:dt:length(v)*dt
     end
