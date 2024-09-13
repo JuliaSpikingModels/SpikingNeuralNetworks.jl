@@ -1,9 +1,6 @@
 using Random, Statistics, StatsBase
 using BenchmarkTools
 
-# %% [markdown]
-# Network
-
 function test_network()
 	Random.seed!(123)
 	network = let
