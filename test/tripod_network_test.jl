@@ -51,7 +51,7 @@ function test_network()
 	timing = @belapsed train!($populations, $synapses, duration=500ms)
 	data=@strdict WI1 WI2 WEd2 WEd1 spikes timing
 
-	tagsave(datadir("network_test", "TripodNetwork.jld2"), data, safe=true)
+	# tagsave(datadir("network_test", "TripodNetwork.jld2"), data, safe=true)
 	## Test with previous results
 	data_new = dict2ntuple(data)
 	data_old = dict2ntuple(DrWatson.load(datadir("network_test", "TripodNetwork.jld2")))
@@ -66,5 +66,3 @@ function test_network()
 	return true
 end
 
-
-test_network()

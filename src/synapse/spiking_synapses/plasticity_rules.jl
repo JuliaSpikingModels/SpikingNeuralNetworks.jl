@@ -168,26 +168,16 @@ function plasticity!(c::SpikingSynapse, param::vSTDPParameter, dt::Float32)
             # _u, _v, _v_post = u[I[s]]
             u[I[s]] += dt * (-u[I[s]] + v_post[I[s]]) / τu # postsynaptic neuron
             v[I[s]] += dt * (-v[I[s]] + v_post[I[s]]) / τv # postsynaptic neuron
-
-            #LTD
             ltd_u = u[I[s]] - θ_LTD
             ltd_v = v[I[s]] - θ_LTD
-            if ltd_u>0f0 && fireJ[j]
-                W[s] += -A_LTD * fireJ[j] * ltd_u
-            end
-
             ltp = v_post[I[s]] - θ_LTP
+
+            if ltd_u>0f0 && fireJ[j]
+                W[s] += -A_LTD * ltd_u
+            end
             if ltp >0f0 && ltd_v>0f0
                 W[s] += A_LTP * x[j] *ltp * ltd_v
             end
-            #     dt * (
-            #         A_LTP * x[j] * R() * R(v[I[s]] - θ_LTD)
-            #     )
-            # W[s] +=
-            #     dt * (
-            #         -A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD) +
-            #         A_LTP * x[j] * R() * R(v[I[s]] - θ_LTD)
-            #     )
         end
     end
 
