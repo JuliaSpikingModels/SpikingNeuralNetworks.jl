@@ -46,8 +46,10 @@ SynapseNormalization
     VFT = Vector{Float32},
     VIT = Vector{Int32},
     MFT = Matrix{Float32},
+    VST = Vector{SpikingSynapse}
 }
     param::NormParam = MultiplicativeNorm()
+    synapses::VST
     t::VIT = [0, 1]
     W0::VFT = [0.0f0]
     W1::VFT = [0.0f0]
@@ -64,9 +66,87 @@ Constructor function for the SynapseNormalization struct.
 - kwargs: Other optional parameters.
 Returns a SynapseNormalization object with the specified parameters.
 """
-function SynapseNormalization(N; param, kwargs...)
+function SynapseNormalization(population, synapses; param::NormParam, kwargs...)
+    @unpack N = population
     W0 = zeros(Float32, N)
     W1 = zeros(Float32, N)
     μ = zeros(Float32, N)
-    SynapseNormalization(; @symdict(param, W0, W1, μ)..., kwargs...)
+    for syn in synapses
+        @unpack fireI, rowptr, W, index = syn
+        @assert length(fireI) == N
+        for i in eachindex(fireI)
+            @simd for j ∈ rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron 
+                W0[i] += W[index[j]]
+            end
+        end
+	end
+    SynapseNormalization(; @symdict(param, W0, W1, μ, synapses)..., kwargs...)
 end
+
+
+
+"""
+    plasticity!(c::SynapseNormalization, param::AdditiveNorm, dt::Float32)
+
+Updates the synaptic weights using additive normalization. This function calculates 
+the rate of change `μ` as the difference between initial weight `W0` and the current weight `W1`, 
+normalized by `W1`. The weights are updated at intervals specified by time constant `τ`.
+
+# Arguments
+- `c`: An instance of SynapseNormalization.
+- `param`: An instance of AdditiveNorm.
+- `dt`: Simulation time step.
+"""
+function plasticity!(c::SynapseNormalization, param::NormParam, dt::Float32)
+    @unpack W1, W0, μ, t, synapses = c
+    @unpack τ, operator = param
+    if ((t[1]) % round(Int, τ / dt)) < dt
+        @debug "Normalization of synapses"
+        # sum on all synapses
+        fill!(W1, 0.0f0)
+        for syn in synapses
+            @unpack  rowptr, W, index = syn
+            @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
+                @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons of i
+                    W1[i] += W[index[j]]
+                end
+            end
+        end
+        # normalize
+        @fastmath @inbounds @simd for i in eachindex(μ)
+            μ[i] = (W0[i] - operator(W1[i],0.f0)) / W1[i]
+        end
+        # apply
+        for syn in synapses
+            @unpack  rowptr, W, index = syn
+            @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
+                @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron i
+                    W[index[j]] = operator(W[index[j]], μ[i])
+                end
+            end
+        end
+    end
+end
+
+# """
+#     plasticity!(c::SynapseNormalization, param::MultiplicativeNorm, dt::Float32)
+
+# Updates the synaptic weights using multiplicative normalization. This function calculates 
+# the rate of change `μ` as the ratio of initial weight `W0` to the current weight `W1`.
+# The weights are updated at intervals specified by time constant `τ`.
+
+# # Arguments
+# - `c`: An instance of SynapseNormalization.
+# - `param`: An instance of MultiplicativeNorm.
+# - `dt`: Simulation time step.
+# """
+# function plasticity!(c::SynapseNormalization, param::MultiplicativeNorm, dt::Float32)
+#     @unpack W1, W0, μ, t = c
+#     @unpack τ, operator = param
+#     if ((t[1] + 5) % round(Int, τ / dt)) < dt
+#         @fastmath @inbounds @simd for i in eachindex(μ)
+#             μ[i] = W0[i] / W1[i]
+#         end
+#         fill!(W1, 0.0f0)
+#     end
+# end

@@ -163,85 +163,36 @@ function plasticity!(c::SpikingSynapse, param::vSTDPParameter, dt::Float32)
     @inbounds @fastmath for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
         # update pre-synaptic spike trace
         x[j] += dt * (-x[j] + fireJ[j]) / τx # presynaptic neuron
-        for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
+        @simd for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
             # update post-synaptic membrane traces
+            # _u, _v, _v_post = u[I[s]]
             u[I[s]] += dt * (-u[I[s]] + v_post[I[s]]) / τu # postsynaptic neuron
             v[I[s]] += dt * (-v[I[s]] + v_post[I[s]]) / τv # postsynaptic neuron
 
-            W[s] +=
-                dt * (
-                    -A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD) +
-                    A_LTP * x[j] * R(v_post[I[s]] - θ_LTP) * R(v[I[s]] - θ_LTD)
-                )
+            #LTD
+            ltd_u = u[I[s]] - θ_LTD
+            ltd_v = v[I[s]] - θ_LTD
+            if ltd_u>0f0 && fireJ[j]
+                W[s] += -A_LTD * fireJ[j] * ltd_u
+            end
+
+            ltp = v_post[I[s]] - θ_LTP
+            if ltp >0f0 && ltd_v>0f0
+                W[s] += A_LTP * x[j] *ltp * ltd_v
+            end
+            #     dt * (
+            #         A_LTP * x[j] * R() * R(v[I[s]] - θ_LTD)
+            #     )
+            # W[s] +=
+            #     dt * (
+            #         -A_LTD * fireJ[j] * R(u[I[s]] - θ_LTD) +
+            #         A_LTP * x[j] * R() * R(v[I[s]] - θ_LTD)
+            #     )
         end
     end
 
-    @unpack W1, μ = c.normalize
-    @unpack τ, operator = c.normalize.param
-    if τ > 0.0f0
-        if ((t[1] + 10) % round(Int, τ / dt)) < dt
-            @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
-                @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons of i
-                    W1[i] += W[index[j]]
-                end
-            end
-        end
-        if (t[1] % round(Int, τ / dt)) < dt
-            @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
-                @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron i
-                    W[index[j]] = operator(W[index[j]], μ[i])
-                end
-            end
-        end
-    end
     @inbounds @simd for i in eachindex(W)
         W[i] = clamp.(W[i], Wmin, Wmax)
     end
 end
 
-
-"""
-    plasticity!(c::SynapseNormalization, param::AdditiveNorm, dt::Float32)
-
-Updates the synaptic weights using additive normalization. This function calculates 
-the rate of change `μ` as the difference between initial weight `W0` and the current weight `W1`, 
-normalized by `W1`. The weights are updated at intervals specified by time constant `τ`.
-
-# Arguments
-- `c`: An instance of SynapseNormalization.
-- `param`: An instance of AdditiveNorm.
-- `dt`: Simulation time step.
-"""
-function plasticity!(c::SynapseNormalization, param::AdditiveNorm, dt::Float32)
-    @unpack W1, W0, μ, t = c
-    @unpack τ, operator = param
-    if ((t[1] + 5) % round(Int, τ / dt)) < dt
-        @fastmath @inbounds @simd for i in eachindex(μ)
-            μ[i] = (W0[i] - W1[i]) / W1[i]
-        end
-        fill!(W1, 0.0f0)
-    end
-end
-
-"""
-    plasticity!(c::SynapseNormalization, param::MultiplicativeNorm, dt::Float32)
-
-Updates the synaptic weights using multiplicative normalization. This function calculates 
-the rate of change `μ` as the ratio of initial weight `W0` to the current weight `W1`.
-The weights are updated at intervals specified by time constant `τ`.
-
-# Arguments
-- `c`: An instance of SynapseNormalization.
-- `param`: An instance of MultiplicativeNorm.
-- `dt`: Simulation time step.
-"""
-function plasticity!(c::SynapseNormalization, param::MultiplicativeNorm, dt::Float32)
-    @unpack W1, W0, μ, t = c
-    @unpack τ, operator = param
-    if ((t[1] + 5) % round(Int, τ / dt)) < dt
-        @fastmath @inbounds @simd for i in eachindex(μ)
-            μ[i] = W0[i] / W1[i]
-        end
-        fill!(W1, 0.0f0)
-    end
-end

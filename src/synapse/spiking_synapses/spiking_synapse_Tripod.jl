@@ -38,7 +38,6 @@ g_type = SubArray{
 	v::VFT = zeros(length(rowptr) - 1) # postsynaptic spiking time 
 	x::VFT = zeros(length(colptr) - 1) # presynaptic spiking time
 	records::Dict = Dict()
-	normalize::SynapseNormalization
 end
 
 @snn_kw struct InhSynapseTripod{
@@ -85,7 +84,6 @@ function SynapseTripod(
 	w = nothing,
 	σ = 0.0,
 	p = 0.0,
-	normalize = SynapseNormalization(),
 	kwargs...,
 )
 	# Get the parameters for post-synaptic cell
@@ -101,13 +99,6 @@ function SynapseTripod(
 	fireI, fireJ = post.fire, pre.fire
 	v_post = getfield(post, Symbol("v_$target"))
 
-	if normalize.param.τ > 0.0f0
-		for i in eachindex(fireI)
-			@simd for j ∈ rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron 
-				normalize.W0[i] += W[index[j]]
-			end
-		end
-	end
 
 	if Symbol(type) == :exc
 		receptors = target == "s" ? [1] : [1, 2]
@@ -127,7 +118,6 @@ function SynapseTripod(
 				v_post,
 				fireI,
 				fireJ,
-				normalize
 			)...,
 			kwargs...,
 		)
