@@ -13,8 +13,6 @@ using Logging
 using StaticArrays
 using ProgressBars
 
-
-
 include("unit.jl")
 include("main.jl")
 include("util.jl")
