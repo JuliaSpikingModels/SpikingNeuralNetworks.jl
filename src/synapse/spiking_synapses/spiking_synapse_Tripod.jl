@@ -95,6 +95,8 @@ function SynapseTripod(
 	else
 		w = sparse(w)
 	end
+	#no autapsis
+	w[diagind(w)] .=0
 	rowptr, colptr, I, J, index, W = dsparse(w)
 	fireI, fireJ = post.fire, pre.fire
 	v_post = getfield(post, Symbol("v_$target"))

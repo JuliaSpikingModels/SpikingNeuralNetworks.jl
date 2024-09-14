@@ -19,7 +19,6 @@ struct no_STDPParameter <: SpikingSynapseParameter end
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
-	normalize::SynapseNormalization
 end
 
 @snn_kw mutable struct vSTDP{
@@ -33,16 +32,16 @@ end
     I::VIT      # postsynaptic index of W
     J::VIT      # presynaptic index of W
     index::VIT  # index mapping: W[index[i]] = Wt[i], Wt = sparse(dense(W)')
+    v_post::VFT
     W::VFT  # synaptic weight
-    u::VFT = zeros(length(colptr) - 1) # presynaptic spiking time
-    v::VFT = zeros(length(colptr) - 1) # postsynaptic spiking time
+    u::VFT = zeros(length(rowptr) - 1) # presynaptic spiking time
+    v::VFT = zeros(length(rowptr) - 1) # postsynaptic spiking time
     x::VFT = zeros(length(colptr) - 1) # postsynaptic spiking time
-    v_post::VFT = zeros(length(colptr) - 1)
     fireJ::VBT # presynaptic firing
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
-	normalize::SynapseNormalization
 end
+
 
 @snn_kw mutable struct iSTDP{
     VIT = Vector{Int32},
@@ -63,6 +62,7 @@ end
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
 end
+
 
 @snn_kw mutable struct no_STDP{
     VIT = Vector{Int32},
@@ -99,7 +99,10 @@ SpikingSynapse
 function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w=nothing, kwargs...)
     if isnothing(w)
         w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
+	else
+		w = sparse(w)
     end
+	w[diagind(w)] .=0
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
