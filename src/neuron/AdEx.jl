@@ -23,7 +23,7 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 
     ## Dynamic spike threshold
     At::FT = 10mV # Post spike threshold increase
-    τT::FT = 30ms # Adaptive threshold time scale
+    τT::FT = 10ms # Adaptive threshold time scale
 end
 
 @snn_kw mutable struct AdEx{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
@@ -90,10 +90,9 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
         # Refractory period
         v[i] = ifelse(fire[i], Vr, v[i])
-
         fire[i] = v[i] > θ[i] + 5.f0
-        θ[i] = ifelse(fire[i], θ[i] + At, θ[i])
         v[i] = ifelse(fire[i], 10.f0, v[i]) # if there is a spike, set membrane potential to reset potential
+        θ[i] = ifelse(fire[i], θ[i] + At, θ[i])
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
         # if fire[i]
         #     timespikes[i] = round(Int, τabs/dt)
