@@ -23,7 +23,7 @@ Create a background feed for a population of Tripod neurons.
 	- `back_pop`: contains the populations created.
 
 """
-function TripodBackground(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz, v0_d1 = -50mV, v0_d2 = -50mV, σ_s = 0.5f0)
+function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz, v0_d1 = -50mV, v0_d2 = -50mV, σ_s = 0.5f0)
 	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_I))
 	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
 	inh_d1 = SNN.SynapseTripod(
@@ -59,11 +59,22 @@ function TripodBackground(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I =
 
 	synapses = dict2ntuple(@strdict inh_d1 inh_d2 inh_s exc_d1 exc_d2 exc_s)
 	populations = dict2ntuple(@strdict I E)
-	return (back_syn = synapses, back_pop = populations)
+	return (syn = synapses, pop = populations)
+end
+
+function TripodExcNoise(Tripod_pop; N_E = 1000,  ν_s = 500Hz, ν_d = 500Hz, σ_s = 1.f0)
+	Ed = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_d))
+	Es = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_s))
+	exc_d1 = SNN.SynapseTripod(Ed, Tripod_pop, "d1", "exc", p = 0.2, σ = 1.0)
+	exc_d2 = SNN.SynapseTripod(Ed, Tripod_pop, "d2", "exc", p = 0.2, σ = 1.0)
+	exc_s = SNN.SynapseTripod(Es, Tripod_pop, "s", "exc", p = 0.2, σ = σ_s)
+	synapses = dict2ntuple(@strdict exc_d1 exc_d2 exc_s)
+	populations = dict2ntuple(@strdict Ed Es)
+	return (syn = synapses, pop = populations)
 end
 
 
-function AdExBackground(pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz,)
+function BalancedNoise(pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz,)
 	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_I))
 	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
 	inh = SNN.SpikingSynapse(
@@ -78,7 +89,15 @@ function AdExBackground(pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0
 
 	synapses = dict2ntuple(@strdict exc inh)
 	populations = dict2ntuple(@strdict I E)
-	return (back_syn = synapses, back_pop = populations)
+	return (syn = synapses, pop = populations)
+end
+
+function ExcNoise(pop; N_E = 100, ν_E = 20Hz, name="E")
+	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
+	exc = SNN.SpikingSynapse(E, pop, :ge, p = 0.2, σ = 2.0)
+	synapses = dict2ntuple(Dict(Symbol("exc_$name")=>exc))
+	populations = dict2ntuple(Dict(Symbol("E_$name")=>E))
+	return (syn = synapses, pop = populations)
 end
 
 
