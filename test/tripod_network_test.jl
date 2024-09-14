@@ -56,13 +56,13 @@ function test_network()
 	data_new = dict2ntuple(data)
 	data_old = dict2ntuple(DrWatson.load(datadir("network_test", "TripodNetwork.jld2")))
 
-	# @assert sum(data_new.WI1.-data_old.WI1) ≈ 0
-	# @assert sum(data_new.WI2.-data_old.WI2) ≈ 0
-	# @assert sum(data_new.WEd2.-data_old.WEd2) ≈ 0
-	# @assert sum(data_new.WEd1.-data_old.WEd1) ≈ 0
-	@info "The simulation reproduces original data"
 	@info "Previous timing: $(data_old.timing)"
 	@info "Present timing: $(data_new.timing)"
+	@assert sum(data_new.WI1.-data_old.WI1) ≈ 0
+	@assert sum(data_new.WI2.-data_old.WI2) ≈ 0
+	@assert sum(data_new.WEd2.-data_old.WEd2) ≈ 0
+	@assert sum(data_new.WEd1.-data_old.WEd1) ≈ 0
+	@info "The simulation reproduces original data"
 	return true
 end
 
