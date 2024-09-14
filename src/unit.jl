@@ -6,6 +6,7 @@ const um = metre / 1e6
 const nm = metre / 1e9
 
 const second = 1e3
+const s = second
 const ms = second / 1e3
 const Hz = 1 / second
 const kHz = Hz * 1e3
@@ -54,6 +55,7 @@ macro load_units()
         :um,
         :nm,
         :second,
+        :s,
         :ms,
         :Hz,
         :voltage,
