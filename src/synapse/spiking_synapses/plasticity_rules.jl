@@ -155,7 +155,7 @@ After all updates, the synaptic weights are clamped between `Wmin` and `Wmax`.
 
 """
 function plasticity!(c::SpikingSynapse, param::vSTDPParameter, dt::Float32)
-    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireJ, t, g = c
+    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireJ, g = c
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
     R(x::Float32) = x < 0.f0 ? 0.f0 : x
 
