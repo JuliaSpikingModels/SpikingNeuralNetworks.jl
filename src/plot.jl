@@ -1,4 +1,4 @@
-using .Plots
+using .Plots, Statistics
 # FIXME: using StatsBase
 
 function raster(p, interval = nothing; dt)
@@ -48,6 +48,7 @@ function vecplot!(
     p,
     sym;
     neurons = nothing,
+    average =false,
     r::AbstractArray{T} = 0:-1,
     dt = 0.1,
     kwargs...,
@@ -62,6 +63,7 @@ function vecplot!(
     else
         x = dt:dt:length(v)*dt
     end
+    y = average ? mean(y, dims=2)[:,1] : y
     plot!(
         my_plot,
         x,
