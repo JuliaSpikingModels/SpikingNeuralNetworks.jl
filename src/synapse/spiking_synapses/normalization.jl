@@ -66,15 +66,18 @@ Constructor function for the SynapseNormalization struct.
 - kwargs: Other optional parameters.
 Returns a SynapseNormalization object with the specified parameters.
 """
-function SynapseNormalization(population, synapses; param::NormParam, kwargs...)
-    @unpack N = population
+function SynapseNormalization(N, synapses; param::NormParam, kwargs...)
+    if !isa(N, Int)
+        @unpack N = N
+    end
     W0 = zeros(Float32, N)
     W1 = zeros(Float32, N)
     μ = zeros(Float32, N)
     for syn in synapses
-        @unpack fireI, rowptr, W, index = syn
-        @assert length(fireI) == N
-        for i in eachindex(fireI)
+        @unpack rowptr, W, index = syn
+        Is = 1:length(rowptr)-1
+        @assert length(Is) == N
+        for i in eachindex(Is)
             @simd for j ∈ rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron 
                 W0[i] += W[index[j]]
             end
