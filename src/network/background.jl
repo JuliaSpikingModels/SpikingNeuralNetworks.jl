@@ -23,7 +23,7 @@ Create a background feed for a population of Tripod neurons.
 	- `back_pop`: contains the populations created.
 
 """
-function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_I = 50Hz, r0 = 10Hz, v0_d1 = -50mV, v0_d2 = -50mV, σ_s = 0.5f0)
+function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 20Hz, ν_I = 50Hz, r0 = 3Hz, v0 = -50mV, σ_s = 0.5f0)
 	I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_I))
 	E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_E))
 	inh_d1 = SNN.SynapseTripod(
@@ -33,7 +33,7 @@ function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_
 		"inh",
 		p = 0.2,
 		σ = 1,
-		param = SNN.iSTDPParameterPotential(v0 = v0_d1),
+		param = SNN.iSTDPParameterPotential(v0 = v0),
 	)
 	inh_d2 = SNN.SynapseTripod(
 		I,
@@ -42,14 +42,14 @@ function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_
 		"inh",
 		p = 0.2,
 		σ = 1,
-		param = SNN.iSTDPParameterPotential(v0 = v0_d2),
+		param = SNN.iSTDPParameterPotential(v0 = v0),
 	)
 	inh_s = SNN.SynapseTripod(
 		I,
 		Tripod_pop,
 		"s",
 		"inh",
-		p = 0.1,
+		p = 0.4,
 		σ = 1,
 		param = SNN.iSTDPParameterRate(r = r0),
 	)
@@ -62,7 +62,7 @@ function TripodBalancedNoise(Tripod_pop; N_E = 1000, N_I = 250, ν_E = 50Hz, ν_
 	return (syn = synapses, pop = populations)
 end
 
-function TripodExcNoise(Tripod_pop; N_E = 1000,  ν_s = 500Hz, ν_d = 500Hz, σ_s = 1.f0)
+function TripodExcNoise(Tripod_pop; N_E = 1000,  ν_s = 200Hz, ν_d = 200Hz, σ_s = 2.f0)
 	Ed = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_d))
 	Es = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_s))
 	exc_d1 = SNN.SynapseTripod(Ed, Tripod_pop, "d1", "exc", p = 0.2, σ = 1.0)

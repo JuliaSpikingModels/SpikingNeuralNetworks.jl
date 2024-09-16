@@ -14,8 +14,8 @@ end
     τu::FT = 20ms
     τv::FT = 7ms
     τx::FT = 15ms
-    Wmax::FT = 50.4pF
-    Wmin::FT = 1.78pF
+    Wmax::FT = 50.0pF
+    Wmin::FT = 0.01pF
 end
 
 abstract type iSTDPParameter <: SpikingSynapseParameter end

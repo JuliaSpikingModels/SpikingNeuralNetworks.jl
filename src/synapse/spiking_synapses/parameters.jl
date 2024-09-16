@@ -24,6 +24,11 @@ nmda_b = 3.36       #(no unit) parameters for voltage dependence of nmda channel
 nmda_k = -0.077     #Eyal 2018
 EyalNMDA = NMDAVoltageDependency(mg = Mg_mM, b = nmda_b, k = nmda_k)
 
+EyalGluDend_nonmda = Glutamatergic(
+    Receptor(E_rev = 0.0, τr = 0.25, τd = 2.0, g0 = 10.0),
+    ReceptorVoltage(E_rev = 0.0, τr = 8, τd = 35.0, g0 = 0.f0, nmda =0.0f0),
+)
+
 
 """
 Richard Miles, Katalin Tóth, Attila I Gulyás, Norbert Hájos, and Tamas F Freund.  Differences between Somatic923and Dendritic Inhibition in the Hippocampus.Neuron, 16(4):815–823, April 1996. ISSN 0896-6273. doi: 10.1016/924S0896-6273(00)80101-4.
@@ -127,7 +132,7 @@ LKDGluSoma = Glutamatergic(
 
 LKDGabaSoma = GABAergic(Receptor(E_rev = -75.0, τr = 0.5, τd = 2.0, g0 = 1.0), Receptor())
 
-export EyalGluDend, MilesGabaDend, DuarteGluSoma, MilesGabaSoma
+export EyalGluDend, MilesGabaDend, DuarteGluSoma, MilesGabaSoma, EyalGluDend_nonmda
 
 
 
