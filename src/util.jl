@@ -6,6 +6,17 @@ function connect!(c, j, i, σ = 1e-6)
     return nothing
 end
 
+function model(elements)
+    elements = isa(elements, Array) ? elements : [elements]
+    P = vcat(map(elements) do e
+        e.pop
+    end)
+    C = vcat(map(elements) do e
+        e.syn
+    end)
+    return P, C
+end
+
 
 # """function dsparse
 

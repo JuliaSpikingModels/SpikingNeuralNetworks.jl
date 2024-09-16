@@ -1,7 +1,0 @@
-include("spiking_structs.jl")
-include("plasticity_parameters.jl")
-include("normalization.jl")
-include("spiking_synapse.jl")
-include("spiking_synapse_Tripod.jl")
-include("plasticity_rules.jl")
-include("parameters.jl")

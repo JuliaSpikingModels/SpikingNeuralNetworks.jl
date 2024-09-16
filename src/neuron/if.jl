@@ -1,3 +1,4 @@
+abstract type AbstractIFParameter <: AbstractNeuronParameter end
 @snn_kw struct IFParameter{FT = Float32} <: AbstractIFParameter
     τm::FT = 20ms
     Vt::FT = -50mV
@@ -14,7 +15,7 @@
     τabs::FT = 1ms # Absolute refractory period
 end
 
-abstract type AbstractIF end
+abstract type AbstractIF <: AbstractNeuron end
 
 @snn_kw mutable struct IF{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
     param::IFParameter = IFParameter()

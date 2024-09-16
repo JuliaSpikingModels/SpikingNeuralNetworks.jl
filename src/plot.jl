@@ -48,22 +48,22 @@ function vecplot!(
     p,
     sym;
     neurons = nothing,
-    average =false,
+    average = false,
     r::AbstractArray{T} = 0:-1,
     dt = 0.1,
     kwargs...,
 ) where {T<:Real}
     v = getrecord(p, sym)
     y = hcat(v...)'
-    neurons = isnothing(neurons) ? (1:size(y,2)) : neurons
-    r_dt = round.(Int, r./dt)
+    neurons = isnothing(neurons) ? (1:size(y, 2)) : neurons
+    r_dt = round.(Int, r ./ dt)
     if !isempty(r)
         y = y[r_dt, neurons]
         x = r
     else
         x = dt:dt:length(v)*dt
     end
-    y = average ? mean(y, dims=2)[:,1] : y
+    y = average ? mean(y, dims = 2)[:, 1] : y
     plot!(
         my_plot,
         x,

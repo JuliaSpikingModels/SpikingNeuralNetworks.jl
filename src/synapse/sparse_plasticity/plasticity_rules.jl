@@ -1,14 +1,14 @@
-function plasticity!(c::SpikingSynapse, param::no_STDPParameter, dt::Float32) end
+function plasticity!(c::AbstractSparseSynapse, param::no_STDPParameter, dt::Float32) end
 
 """
-    plasticity!(c::SpikingSynapse, param::iSTDPParameterRate, dt::Float32)
+    plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Float32)
 
 Performs the synaptic plasticity calculation based on the inihibitory spike-timing dependent plasticity (iSTDP) model from Vogels (2011). 
 The function updates synaptic weights `W` of each synapse in the network according to the firing status of pre and post-synaptic neurons.
-This is an in-place operation that modifies the input `SpikingSynapse` object `c`.
+This is an in-place operation that modifies the input `AbstractSparseSynapse` object `c`.
 
 # Arguments
-- `c::SpikingSynapse`: The current spiking synapse object which contains data structures to represent the synapse network.
+- `c::AbstractSparseSynapse`: The current spiking synapse object which contains data structures to represent the synapse network.
 - `param::iSTDPParameterRate`: Parameters needed for the iSTDP model, including learning rate `η`, target rate `r`, STDP time constant `τy`, maximal and minimal synaptic weight (`Wmax` and `Wmin`).
 - `dt::Float32`: The time step for the numerical integration.
 
@@ -20,7 +20,7 @@ This is an in-place operation that modifies the input `SpikingSynapse` object `c
 - The synaptic weights are bounded by `Wmin` and `Wmax`.
 """
 ##
-function plasticity!(c::SpikingSynapse, param::iSTDPParameterRate, dt::Float32)
+function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Float32)
     @unpack rowptr, colptr, index, I, J, W, tpost, tpre, fireI, fireJ, g = c
     @unpack η, r, τy, Wmax, Wmin = param
 
@@ -50,14 +50,14 @@ function plasticity!(c::SpikingSynapse, param::iSTDPParameterRate, dt::Float32)
 end
 
 """
-    plasticity!(c::SpikingSynapse, param::iSTDPParameterRate, dt::Float32)
+    plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Float32)
 
 Performs the synaptic plasticity calculation based on the inihibitory spike-timing dependent plasticity (iSTDP) model from Vogels (2011) adapted to control the membrane potential. 
 The function updates synaptic weights `W` of each synapse in the network according to the firing status of pre and post-synaptic neurons.
-This is an in-place operation that modifies the input `SpikingSynapse` object `c`.
+This is an in-place operation that modifies the input `AbstractSparseSynapse` object `c`.
 
 # Arguments
-- `c::SpikingSynapse`: The current spiking synapse object which contains data structures to represent the synapse network.
+- `c::AbstractSparseSynapse`: The current spiking synapse object which contains data structures to represent the synapse network.
 - `param::iSTDPParameterVoltage`: Parameters needed for the iSTDP model, including learning rate `η`, target membrane potenital `v0`, STDP time constant `τy`, maximal and minimal synaptic weight (`Wmax` and `Wmin`).
 - `dt::Float32`: The time step for the numerical integration.
 
@@ -67,7 +67,7 @@ This is an in-place operation that modifies the input `SpikingSynapse` object `c
 - For each post-synaptic neuron, if it fires, it increases the synaptic weight by an amount proportional to the pre-synaptic trace and increases the excitatory term, otherwise the excitatory term decays exponentially over time with a time constant `τy`.
 - The synaptic weights are bounded by `Wmin` and `Wmax`.
 """
-function plasticity!(c::SpikingSynapse, param::iSTDPParameterPotential, dt::Float32)
+function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterPotential, dt::Float32)
     @unpack rowptr, colptr, index, I, J, W, v_post, tpost, tpre, fireI, fireJ, g = c
     @unpack η, v0, τy, Wmax, Wmin = param
 
@@ -99,7 +99,7 @@ end
 
 #
 # function plasticity!(
-#     c::SpikingSynapse,
+#     c::AbstractSparseSynapse,
 #     param::STDPParameter,
 #     dt::Float32,
 # )
@@ -131,13 +131,13 @@ end
 # end
 
 """
-    plasticity!(c::SpikingSynapse, param::vSTDPParameter, dt::Float32)
+    plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
 
 Perform update of synapses using plasticity rules based on the Spike Timing Dependent Plasticity (STDP) model.
 This function updates pre-synaptic spike traces and post-synaptic membrane traces, and modifies synaptic weights using vSTDP rules.
 
 # Arguments
-- `c::SpikingSynapse`: The spiking synapse to be updated.
+- `c::AbstractSparseSynapse`: The spiking synapse to be updated.
 - `param::vSTDPParameter`: Contains STDP parameters including A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin.
     - `A_LTD`: Long Term Depression learning rate.
     - `A_LTP`: Long Term Potentiation learning rate.
@@ -154,35 +154,58 @@ where if `τ > 0.0f0` then normalization will occur at intervals approximately e
 After all updates, the synaptic weights are clamped between `Wmin` and `Wmax`.
 
 """
-function plasticity!(c::SpikingSynapse, param::vSTDPParameter, dt::Float32)
-    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireJ, g = c
+function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
+    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireI, fireJ, g, index = c
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
-    R(x::Float32) = x < 0.f0 ? 0.f0 : x
+    R(x::Float32) = x < 0.0f0 ? 0.0f0 : x
 
+    # update pre-synaptic spike trace
+    @simd for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
+        @inbounds @fastmath x[j] += dt * (-x[j] + fireJ[j]) / τx
+    end
 
-    @inbounds @fastmath for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
-        # update pre-synaptic spike trace
-        x[j] += dt * (-x[j] + fireJ[j]) / τx # presynaptic neuron
-        @simd for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
-            # update post-synaptic membrane traces
-            # _u, _v, _v_post = u[I[s]]
-            u[I[s]] += dt * (-u[I[s]] + v_post[I[s]]) / τu # postsynaptic neuron
-            v[I[s]] += dt * (-v[I[s]] + v_post[I[s]]) / τv # postsynaptic neuron
-            ltd_u = u[I[s]] - θ_LTD
-            ltd_v = v[I[s]] - θ_LTD
-            ltp = v_post[I[s]] - θ_LTP
+    @inbounds @fastmath for i in eachindex(fireI) # Iterate over postsynaptic neurons
+        u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
+        v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
+        ltd_u = u[i] - θ_LTD
+        ltd_v = v[i] - θ_LTD
+        ltp = v_post[i] - θ_LTP
+        # @simd for s = colptr[j]:(colptr[j+1]-1) 
 
-            if ltd_u>0f0 && fireJ[j]
-                W[s] += -A_LTD * ltd_u
+        @simd for s = rowptr[i]:(rowptr[i+1]-1)
+            j = J[index[s]]
+            if ltd_u > 0.0f0 && fireJ[j]
+                W[index[s]] += -A_LTD * ltd_u
             end
-            if ltp >0f0 && ltd_v>0f0
-                W[s] += A_LTP * x[j] *ltp * ltd_v
+            if ltp > 0.0f0 && ltd_v > 0.0f0
+                W[index[s]] += A_LTP * x[j] * ltp * ltd_v
             end
         end
     end
+
+
+    # @inbounds @fastmath for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
+    #     # update pre-synaptic spike trace
+    #     x[j] += dt * (-x[j] + fireJ[j]) / τx # presynaptic neuron
+    #     @simd for s = colptr[j]:(colptr[j+1]-1) # Iterate over all values in column j, s: postsynaptic neuron connected to j
+    #         # update post-synaptic membrane traces
+    #         # _u, _v, _v_post = u[I[s]]
+    #         u[I[s]] += dt * (-u[I[s]] + v_post[I[s]]) / τu # postsynaptic neuron
+    #         v[I[s]] += dt * (-v[I[s]] + v_post[I[s]]) / τv # postsynaptic neuron
+    #         ltd_u = u[I[s]] - θ_LTD
+    #         ltd_v = v[I[s]] - θ_LTD
+    #         ltp =   v_post[I[s]] - θ_LTP
+
+    #         if ltd_u>0f0 && fireJ[j]
+    #             W[s] += -A_LTD * ltd_u
+    #         end
+    #         if ltp >0f0 && ltd_v>0f0
+    #             W[s] += A_LTP * x[j] *ltp * ltd_v
+    #         end
+    #     end
+    # end
 
     @inbounds @simd for i in eachindex(W)
         W[i] = clamp.(W[i], Wmin, Wmax)
     end
 end
-

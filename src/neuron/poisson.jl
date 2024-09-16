@@ -2,7 +2,8 @@
     rate::FT = 1Hz
 end
 
-@snn_kw mutable struct Poisson{VFT = Vector{Float32},VBT = Vector{Bool},IT = Int32}
+@snn_kw mutable struct Poisson{VFT = Vector{Float32},VBT = Vector{Bool},IT = Int32} <:
+                       AbstractNeuron
     param::PoissonParameter = PoissonParameter()
     t::VFT = [0.0f0] ## keep the time of the simulation
     N::IT = 100

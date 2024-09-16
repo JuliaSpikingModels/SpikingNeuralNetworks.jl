@@ -90,8 +90,8 @@ function integrate!(p::AdEx, param::AdExParameter, dt::Float32)
     @inbounds for i ∈ 1:N # iterates over all neurons at a specific time step
         # Refractory period
         v[i] = ifelse(fire[i], Vr, v[i])
-        fire[i] = v[i] > θ[i] + 5.f0
-        v[i] = ifelse(fire[i], 10.f0, v[i]) # if there is a spike, set membrane potential to reset potential
+        fire[i] = v[i] > θ[i] + 5.0f0
+        v[i] = ifelse(fire[i], 10.0f0, v[i]) # if there is a spike, set membrane potential to reset potential
         θ[i] = ifelse(fire[i], θ[i] + At, θ[i])
         w[i] = ifelse(fire[i], w[i] + b, w[i]) # if there is a spike, increase adaptation current by an amount of b 
         # if fire[i]

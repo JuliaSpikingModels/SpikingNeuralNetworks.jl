@@ -1,3 +1,6 @@
+abstract type SpikingSynapseParameter <: AbstractSynapseParameter end
+struct no_STDPParameter <: SpikingSynapseParameter end
+
 @snn_kw struct STDPParameter{FT = Float32} <: SpikingSynapseParameter
     τpre::FT = 20ms
     τpost::FT = 20ms

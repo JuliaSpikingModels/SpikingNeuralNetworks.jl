@@ -23,13 +23,17 @@ using Statistics, SparseArrays
 # %% [markdown]
 # Create vectors of dendritic parameters and the Tripod model
 N = 1
-d1 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = rand(250:1:350) * um)...) for n in 1:N]
-d2 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = 0um)...) for n in 1:N]
-Tripod_pop = SNN.TripodNeurons(N = N, d1 = d1, d2 = d2,
-	soma_syn = Synapse(DuarteGluSoma, MilesGabaSoma),
-	dend_syn = Synapse(EyalGluDend, MilesGabaDend),
-	NMDA = SNN.EyalNMDA,
-	param = SNN.AdExTripod(b = 0.0f0, Vr = -50))
+d1 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = rand(250:1:350) * um)...) for n = 1:N]
+d2 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = 0um)...) for n = 1:N]
+Tripod_pop = SNN.TripodNeurons(
+    N = N,
+    d1 = d1,
+    d2 = d2,
+    soma_syn = Synapse(DuarteGluSoma, MilesGabaSoma),
+    dend_syn = Synapse(EyalGluDend, MilesGabaDend),
+    NMDA = SNN.EyalNMDA,
+    param = SNN.AdExTripod(b = 0.0f0, Vr = -50),
+)
 
 d2[1]
 # background
@@ -45,22 +49,22 @@ v0_d2 = -40mV
 I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_E))
 E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_I))
 inh_d1 = SNN.SynapseTripod(
-	I,
-	Tripod_pop,
-	"d1",
-	"inh",
-	p = 0.2,
-	σ = 1,
-	param = SNN.iSTDPParameterPotential(v0 = v0_d1),
+    I,
+    Tripod_pop,
+    "d1",
+    "inh",
+    p = 0.2,
+    σ = 1,
+    param = SNN.iSTDPParameterPotential(v0 = v0_d1),
 )
 inh_s = SNN.SynapseTripod(
-	I,
-	Tripod_pop,
-	"s",
-	"inh",
-	p = 0.1,
-	σ = 1,
-	param = SNN.iSTDPParameterRate(r = r0),
+    I,
+    Tripod_pop,
+    "s",
+    "inh",
+    p = 0.1,
+    σ = 1,
+    param = SNN.iSTDPParameterRate(r = r0),
 )
 exc_d1 = SNN.SynapseTripod(E, Tripod_pop, "d1", "exc", p = 0.2, σ = 15.0)
 exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", "exc", p = 0.2, σ = σ_s)

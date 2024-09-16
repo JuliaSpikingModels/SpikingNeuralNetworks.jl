@@ -13,12 +13,15 @@ using Logging
 using StaticArrays
 using ProgressBars
 
+
+include("structs.jl")
 include("unit.jl")
 include("main.jl")
 include("util.jl")
-include("structs.jl")
 include("analysis.jl")
+include("synapse.jl")
 
+abstract type AbstractPopulation end
 include("neuron/if.jl")
 include("neuron/if_constant_input.jl")
 include("neuron/if2.jl")
@@ -29,15 +32,18 @@ include("neuron/poisson.jl")
 include("neuron/iz.jl")
 include("neuron/hh.jl")
 include("neuron/rate.jl")
+include("neuron/Tripod.jl")
 
+abstract type AbstractConnection end
+include("synapse/normalization.jl")
 include("synapse/rate_synapse.jl")
 include("synapse/fl_synapse.jl")
 include("synapse/fl_sparse_synapse.jl")
 include("synapse/pinning_synapse.jl")
 include("synapse/pinning_sparse_synapse.jl")
 include("synapse/spike_rate_synapse.jl")
-include("synapse/spiking_synapses/base.jl")
-include("neuron/Tripod.jl")
+include("synapse/sparse_plasticity.jl")
+include("synapse/spiking_synapse.jl")
 
 include("network/background.jl")
 include("network/inputs.jl")

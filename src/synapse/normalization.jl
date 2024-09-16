@@ -46,8 +46,8 @@ SynapseNormalization
     VFT = Vector{Float32},
     VIT = Vector{Int32},
     MFT = Matrix{Float32},
-    VST = Vector{SpikingSynapse}
-}
+    VST = Vector{<:AbstractSparseSynapse},
+} <: AbstractNormalization
     param::NormParam = MultiplicativeNorm()
     synapses::VST
     t::VIT = [0, 1]
@@ -82,11 +82,13 @@ function SynapseNormalization(N, synapses; param::NormParam, kwargs...)
                 W0[i] += W[index[j]]
             end
         end
-	end
+    end
     SynapseNormalization(; @symdict(param, W0, W1, μ, synapses)..., kwargs...)
 end
 
 
+
+function forward!(c::SynapseNormalization, param::NormParam) end
 
 """
     plasticity!(c::SynapseNormalization, param::AdditiveNorm, dt::Float32)
@@ -108,7 +110,7 @@ function plasticity!(c::SynapseNormalization, param::NormParam, dt::Float32)
         # sum on all synapses
         fill!(W1, 0.0f0)
         for syn in synapses
-            @unpack  rowptr, W, index = syn
+            @unpack rowptr, W, index = syn
             @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
                 @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons of i
                     W1[i] += W[index[j]]
@@ -117,11 +119,11 @@ function plasticity!(c::SynapseNormalization, param::NormParam, dt::Float32)
         end
         # normalize
         @fastmath @inbounds @simd for i in eachindex(μ)
-            μ[i] = (W0[i] - operator(W1[i],0.f0)) / W1[i] #operator defines additive or multiplicative norm
+            μ[i] = (W0[i] - operator(W1[i], 0.0f0)) / W1[i] #operator defines additive or multiplicative norm
         end
         # apply
         for syn in synapses
-            @unpack  rowptr, W, index = syn
+            @unpack rowptr, W, index = syn
             @inbounds @fastmath for i = 1:(length(rowptr)-1) # Iterate over all postsynaptic neuron
                 @simd for j = rowptr[i]:rowptr[i+1]-1 # all presynaptic neurons connected to neuron i
                     W[index[j]] = operator(W[index[j]], μ[i])
@@ -130,4 +132,3 @@ function plasticity!(c::SynapseNormalization, param::NormParam, dt::Float32)
         end
     end
 end
-

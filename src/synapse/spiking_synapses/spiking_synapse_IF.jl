@@ -1,6 +1,3 @@
-abstract type SpikingSynapse end
-
-struct no_STDPParameter <: SpikingSynapseParameter end
 
 @snn_kw mutable struct STDP{VIT = Vector{Int32},VFT = Vector{Float32},VBT = Vector{Bool}} <:
                        SpikingSynapse
@@ -41,7 +38,6 @@ end
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
 end
-
 
 @snn_kw mutable struct iSTDP{
     VIT = Vector{Int32},
@@ -96,13 +92,13 @@ end
 """
 SpikingSynapse
 
-function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w=nothing, kwargs...)
+function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w = nothing, kwargs...)
     if isnothing(w)
         w = σ * sprand(post.N, pre.N, p) # Construct a random sparse vector with length post.N, pre.N and density p
-	else
-		w = sparse(w)
+    else
+        w = sparse(w)
     end
-	w[diagind(w)] .=0
+    w[diagind(w)] .= 0
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
@@ -152,5 +148,3 @@ function forward!(c::SpikingSynapse, param::SpikingSynapseParameter)
         end
     end
 end
-
-export SpikingSynapse
