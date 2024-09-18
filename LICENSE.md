@@ -1,5 +1,7 @@
-The SpikingNeuralNetworks.jl package is licensed under the MIT "Expat" License:
+SpikingNeuralNetworks.jl package v0.2.0 is licensed under the MIT "Expat" License
+Copyright (c) 2024: Alessio Quaresima.
 
+SpikingNeuralNetworks.jl package v0.1.0 is licensed under the MIT "Expat" License
 > Copyright (c) 2016: Yao Lu.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
