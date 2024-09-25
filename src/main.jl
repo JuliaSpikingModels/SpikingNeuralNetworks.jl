@@ -52,7 +52,7 @@ function train!(
 )
     dt = Float32(dt)
     pbar = ProgressBar(0.0f0:dt:(duration-dt))
-    pbar = 0.0f0:dt:(duration-dt)
+    # pbar = 0.0f0:dt:(duration-dt)
     for t in pbar
         train!(P, C, dt)
     end
