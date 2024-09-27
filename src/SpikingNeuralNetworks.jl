@@ -12,6 +12,7 @@ using Random
 using Logging
 using StaticArrays
 using ProgressBars
+using LoopVectorization
 
 
 include("structs.jl")
