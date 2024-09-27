@@ -1,4 +1,4 @@
-function sim!(P::Vector{AbstractNeuron}, C::Vector{AbstractSynapse}, dt::Float32)
+function sim!(P::Vector{TN}, C::Vector{TS}, dt::Float32) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
     # Threads.@threads 
     for p in P
         hasfield(typeof(p), :t) && (p.t[1] += 1)
@@ -14,12 +14,12 @@ function sim!(P::Vector{AbstractNeuron}, C::Vector{AbstractSynapse}, dt::Float32
 end
 
 function sim!(
-    P::Vector{AbstractNeuron},
-    C::Vector{AbstractSynapse};
+    P::Vector{TN},
+    C::Vector{TS};
     dt = 0.1f0,
     duration = 10.0f0,
     pbar = false,
-)
+) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
     dt = Float32(dt)
     duration = Float32(duration)
     dts = 0.0f0:dt:(duration-dt)
@@ -29,13 +29,14 @@ function sim!(
     end
 end
 
-function train!(P::Vector{AbstractNeuron}, C::Vector{AbstractSynapse}, dt::Float32)
+function train!(P::Vector{TN}, C::Vector{TS}, dt::Float32) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
     for p in P
         hasfield(typeof(p), :t) && (p.t[1] += 1)
         integrate!(p, p.param, dt)
         record!(p)
     end
     for c in C
+        hasfield(typeof(c), :t) && (c.t[1] += 1)
         hasfield(typeof(c), :t) && (c.t[1] += 1)
         forward!(c, c.param)
         hasfield(typeof(c), :t) && (c.t[2] ≈ 0 && continue)
@@ -45,11 +46,11 @@ function train!(P::Vector{AbstractNeuron}, C::Vector{AbstractSynapse}, dt::Float
 end
 
 function train!(
-    P::Vector{AbstractNeuron},
-    C::Vector{AbstractSynapse};
+    P::Vector{TN},
+    C::Vector{TS};
     dt = 0.1ms,
     duration = 10ms,
-)
+) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
     dt = Float32(dt)
     pbar = ProgressBar(0.0f0:dt:(duration-dt))
     # pbar = 0.0f0:dt:(duration-dt)
