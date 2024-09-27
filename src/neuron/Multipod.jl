@@ -83,6 +83,11 @@ The type `FT` represents Float32.
 """
 Dendrite
 
+get_dendrites_zeros(N, args...)= (;(Symbol("d$x")=>zeros(args...) for x in 1:N)...)
+get_dendrites_vr(N, vr, args...)= (;(Symbol("d$x")=>fill(vr,args...) for x in 1:N)...)
+
+Nd= 10
+N=4
 
 
 @snn_kw struct Dendrite{FT = Float32}
@@ -122,12 +127,12 @@ This is a struct representing a spiking neural network model that include two de
 - `cs::VFT` , `is::VFT` : Temporary variables for currents.
 """
 Tripod
-@snn_kw struct Tripod{
-    MFT = Matrix{Float32},
-    VIT = Vector{Int32},
-    VFT = Vector{Float32},
+@snn_kw struct Multipod{
     VBT = Vector{Bool},
-    VDT = Vector{Dendrite{Float32}},
+    VIT::Vector{Int},
+    MFT, ## Conductance type
+    VFT, ## Float type
+    VDT, ## Dendrite types 
     ST = SynapseArray,
     NMDAT = NMDAVoltageDependency{Float32},
     PST = PostSpike{Float32},
@@ -139,6 +144,7 @@ Tripod
     param::AdExType = AdExTripod()
     ## These are compulsory parameters
     N::IT = 100
+    Nd::IT = 3
     soma_syn::ST
     dend_syn::ST
     d1::VDT
@@ -146,53 +152,46 @@ Tripod
     NMDA::NMDAT = NMDAVoltageDependency(mg = Mg_mM, b = nmda_b, k = nmda_k)
     ##
     # dendrites
-    gax1::VFT = zeros(N)
-    gax2::VFT = zeros(N)
-    cd1::VFT = zeros(N)
-    cd2::VFT = zeros(N)
-    gm1::VFT = zeros(N)
-    gm2::VFT = zeros(N)
+    gax::VFT = get_dendrites_zeros(Nd, N)
+    cd::VFT  = get_dendrites_zeros(Nd, N)
+    gm::VFT  = get_dendrites_zeros(Nd, N)
     ##
     # Membrane potential and adaptation
     v_s::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     w_s::VFT = zeros(N)
-    v_d1::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
-    v_d2::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
+    v_d::VFT = get_dendrites_zeros(Nd, N) 
     # Synapses
     g_s::MFT = zeros(N, 2)
-    g_d1::MFT = zeros(N, 4)
-    g_d2::MFT = zeros(N, 4)
     h_s::MFT = zeros(N, 2)
-    h_d1::MFT = zeros(N, 4)
-    h_d2::MFT = zeros(N, 4)
+    g_d::MFT = get_dendrites_zeros(Nd, N, 2)
+    h_d::MFT = get_dendrites_zeros(Nd, N, 2)
     # Spike model and threshold
     fire::VBT = zeros(Bool, N)
     after_spike::VFT = zeros(Int, N)
     postspike::PST = PostSpike(A = 10, τA = 30ms)
     θ::VFT = ones(N) * param.Vt
     records::Dict = Dict()
-    Δv::VFT = zeros(3)
-    Δv_temp::VFT = zeros(3)
-    cs::VFT = zeros(2)
-    is::VFT = zeros(3)
+    ## 
+    Δv::VFT = zeros(Nd+1)
+    Δv_temp::VFT = zeros(Nd+1)
+    cs::VFT = zeros(Nd)
+    is::VFT = zeros(Nd+1)
 end
 
-function TripodNeurons(;
+function MultipodNeurons(;
     N::Int,
-    d1::Vector{Dendrite{Float32}},
-    d2::Vector{Dendrite{Float32}},
+    dendrites::Vector,
     soma_syn::Synapse,
     dend_syn::Synapse,
     NMDA::NMDAVoltageDependency,
-    param = AdExTripod(),
+    param = AdExTripod(); 
 )::Tripod
-    gax1 = [d.gax for d in d1]
-    gax2 = [d.gax for d in d2]
-    cd1 = [d.C for d in d1]
-    cd2 = [d.C for d in d2]
-    gm1 = [d.gm for d in d1]
-    gm2 = [d.gm for d in d2]
-    return Tripod(
+    Nd = length(dendrites)
+    ds = (;(Symbol("d$nd")=>d for d in eachindex(dendrites))...)
+    gax = (;(Symbol("d$nd")=>[d.gax for d in dendrites[nd]] for nd in eachindex(dendrites))...)
+    cd = (;(Symbol("d$nd")=>[d.cd for d in dendrites[nd]] for nd in eachindex(dendrites))...)
+    gm = (;(Symbol("d$nd")=>[d.gm for d in dendrites[nd]] for nd in eachindex(dendrites))...)
+    return Multipod(
         N = N,
         d1 = d1,
         d2 = d2,
@@ -322,6 +321,7 @@ function update_tripod!(
     @fastmath @inbounds begin
         @unpack v_d1, v_d2, v_s, w_s, g_s, g_d1, g_d2, θ = p
         @unpack gax1, gax2, gm1, gm2, cd1, cd2 = p
+        @unpack d1, d2 = p
 
         @unpack soma_syn, dend_syn, NMDA = p
         @unpack is, cs = p
@@ -352,7 +352,7 @@ function update_tripod!(
                 is[3] += gsyn * g_d2[i, r] * (v_d2[i] + Δv[3] * dt - E_rev)
             end
         end
-        @turbo for _i ∈ 1:3
+        for _i ∈ 1:3
             is[_i] = clamp(is[_i], -1500, 1500)
         end
         # @info Δv

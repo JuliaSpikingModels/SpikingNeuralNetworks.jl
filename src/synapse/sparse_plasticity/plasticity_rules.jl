@@ -31,7 +31,7 @@ function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Fl
         if fireJ[j] # presynaptic neuron
             tpre[j] += 1
             for st = colptr[j]:(colptr[j+1]-1)
-                W[st] = clamp(W[st] + η * (tpost[I[st]] - 2 * r * Hz * τy), Wmin, Wmax)
+                W[st] = clamp(W[st] + η * (tpost[I[st]] - 2 * r * τy), Wmin, Wmax)
             end
         end
     end
@@ -160,19 +160,21 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
     R(x::Float32) = x < 0.0f0 ? 0.0f0 : x
 
     # update pre-synaptic spike trace
-    @simd for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
+    @turbo for j in eachindex(fireJ) # Iterate over all columns, j: presynaptic neuron
         @inbounds @fastmath x[j] += dt * (-x[j] + fireJ[j]) / τx
     end
 
 
-    @inbounds @fastmath for i in eachindex(fireI) # Iterate over postsynaptic neurons
+    @turbo for i in eachindex(fireI) # Iterate over postsynaptic neurons
         u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
         v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
+    end
+        # @simd for s = colptr[j]:(colptr[j+1]-1) 
+
+    @inbounds @fastmath for i in eachindex(fireI) # Iterate over postsynaptic neurons
         ltd_u = u[i] - θ_LTD
         ltd_v = v[i] - θ_LTD
         ltp = v_post[i] - θ_LTP
-        # @simd for s = colptr[j]:(colptr[j+1]-1) 
-
         @simd for s = rowptr[i]:(rowptr[i+1]-1)
             j = J[index[s]]
             if ltd_u > 0.0f0 && fireJ[j]
@@ -185,7 +187,7 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
     end
 
     @inbounds @simd for i in eachindex(W)
-        W[i] = clamp.(W[i], Wmin, Wmax)
+        W[i] = clamp(W[i], Wmin, Wmax)
     end
 end
 
