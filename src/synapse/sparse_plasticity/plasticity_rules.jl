@@ -31,7 +31,7 @@ function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Fl
         if fireJ[j] # presynaptic neuron
             tpre[j] += 1
             for st = colptr[j]:(colptr[j+1]-1)
-                W[st] = clamp(W[st] + η * (tpost[I[st]] - 2 * r * Hz * τy), Wmin, Wmax)
+                W[st] = clamp(W[st] + η * (tpost[I[st]] - 2 * r * τy), Wmin, Wmax)
             end
         end
     end
