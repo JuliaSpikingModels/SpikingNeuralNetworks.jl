@@ -35,8 +35,8 @@ E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_I))
 inh_d1 = SNN.SynapseTripod(
     I,
     Tripod_pop,
-    "d1",
-    "inh",
+    :d1,
+    :inh,
     p = 0.2,
     σ = 1,
     param = SNN.iSTDPParameterPotential(v0 = v0_d1),
@@ -45,7 +45,7 @@ inh_d2 = SNN.SynapseTripod(
     I,
     Tripod_pop,
     "d2",
-    "inh",
+    :inh,
     p = 0.2,
     σ = 1,
     param = SNN.iSTDPParameterPotential(v0 = v0_d2),
@@ -54,14 +54,14 @@ inh_s = SNN.SynapseTripod(
     I,
     Tripod_pop,
     "s",
-    "inh",
+    :inh,
     p = 0.1,
     σ = 1,
     param = SNN.iSTDPParameterRate(r = r0),
 )
-exc_d1 = SNN.SynapseTripod(E, Tripod_pop, "d1", "exc", p = 0.2, σ = 15.0)
-exc_d2 = SNN.SynapseTripod(E, Tripod_pop, "d2", "exc", p = 0.2, σ = 15.0)
-exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", "exc", p = 0.2, σ = σ_s)
+exc_d1 = SNN.SynapseTripod(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 15.0)
+exc_d2 = SNN.SynapseTripod(E, Tripod_pop, "d2", :exc, p = 0.2, σ = 15.0)
+exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
 
 synapses = [inh_d1, inh_d2, inh_s, exc_d1, exc_d2, exc_s]
 populations = [Tripod_pop, I, E]
@@ -69,5 +69,5 @@ populations = [Tripod_pop, I, E]
 SNN.train!(populations, synapses, duration = 5000ms)
 ##
 SNN.monitor(Tripod_pop, [:fire, :v_d1, :v_s, :v_d2])
-SNN.sim!(populations, synapses, duration = 10000ms)
+SNN.sim!(populations, synapses, duration = 2000ms)
 SNN.vecplot(Tripod_pop, [:v_d2, :v_d1, :v_s])

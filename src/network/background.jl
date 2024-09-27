@@ -38,8 +38,8 @@ function TripodBalancedNoise(
     inh_d1 = SNN.SynapseTripod(
         I,
         Tripod_pop,
-        "d1",
-        "inh",
+        :d1,
+        :inh,
         p = 0.2,
         σ = 1,
         param = SNN.iSTDPParameterPotential(v0 = v0),
@@ -48,7 +48,7 @@ function TripodBalancedNoise(
         I,
         Tripod_pop,
         "d2",
-        "inh",
+        :inh,
         p = 0.2,
         σ = 1,
         param = SNN.iSTDPParameterPotential(v0 = v0),
@@ -57,14 +57,14 @@ function TripodBalancedNoise(
         I,
         Tripod_pop,
         "s",
-        "inh",
+        :inh,
         p = 0.4,
         σ = 1,
         param = SNN.iSTDPParameterRate(r = r0),
     )
-    exc_d1 = SNN.SynapseTripod(E, Tripod_pop, "d1", "exc", p = 0.2, σ = 1.0)
-    exc_d2 = SNN.SynapseTripod(E, Tripod_pop, "d2", "exc", p = 0.2, σ = 1.0)
-    exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", "exc", p = 0.2, σ = σ_s)
+    exc_d1 = SNN.SynapseTripod(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 1.0)
+    exc_d2 = SNN.SynapseTripod(E, Tripod_pop, "d2", :exc, p = 0.2, σ = 1.0)
+    exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
 
     synapses = dict2ntuple(@strdict inh_d1 inh_d2 inh_s exc_d1 exc_d2 exc_s)
     populations = dict2ntuple(@strdict I E)
@@ -74,9 +74,9 @@ end
 function TripodExcNoise(Tripod_pop; N_E = 1000, ν_s = 200Hz, ν_d = 200Hz, σ_s = 2.0f0)
     Ed = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_d))
     Es = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_s))
-    exc_d1 = SNN.SynapseTripod(Ed, Tripod_pop, "d1", "exc", p = 0.2, σ = 1.0)
-    exc_d2 = SNN.SynapseTripod(Ed, Tripod_pop, "d2", "exc", p = 0.2, σ = 1.0)
-    exc_s = SNN.SynapseTripod(Es, Tripod_pop, "s", "exc", p = 0.2, σ = σ_s)
+    exc_d1 = SNN.SynapseTripod(Ed, Tripod_pop, :d1, :exc, p = 0.2, σ = 1.0)
+    exc_d2 = SNN.SynapseTripod(Ed, Tripod_pop, "d2", :exc, p = 0.2, σ = 1.0)
+    exc_s = SNN.SynapseTripod(Es, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
     synapses = dict2ntuple(@strdict exc_d1 exc_d2 exc_s)
     populations = dict2ntuple(@strdict Ed Es)
     return (syn = synapses, pop = populations)

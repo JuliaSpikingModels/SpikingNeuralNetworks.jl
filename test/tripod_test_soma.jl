@@ -19,10 +19,10 @@ E = SNN.TripodPopulation(
 
 pre = (fire = falses(1), N = 1)
 w = 20 * ones(1, 1)
-projection_exc_dend = SNN.SynapseTripod(pre, E, "d1", "exc", w = w)
-projection_inh_dend = SNN.SynapseTripod(pre, E, "d1", "inh", w = w)
-projection_exc_soma = SNN.SynapseTripod(pre, E, "s", "exc", w = w)
-projection_inh_soma = SNN.SynapseTripod(pre, E, "s", "inh", w = w)
+projection_exc_dend = SNN.SynapseTripod(pre, E, :d1, :exc, w = w)
+projection_inh_dend = SNN.SynapseTripod(pre, E, :d1, :inh, w = w)
+projection_exc_soma = SNN.SynapseTripod(pre, E, "s", :exc, w = w)
+projection_inh_soma = SNN.SynapseTripod(pre, E, "s", :inh, w = w)
 
 
 projections = [projection_exc_soma, projection_inh_soma]
