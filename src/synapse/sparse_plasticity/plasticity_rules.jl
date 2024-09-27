@@ -166,19 +166,18 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
 
 
     @turbo for i in eachindex(fireI) # Iterate over postsynaptic neurons
-        u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
-        v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
+        @inbounds u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
+        @inbounds v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
     end
         # @simd for s = colptr[j]:(colptr[j+1]-1) 
 
     @inbounds @fastmath for i in eachindex(fireI) # Iterate over postsynaptic neurons
-        ltd_u = u[i] - θ_LTD
         ltd_v = v[i] - θ_LTD
         ltp = v_post[i] - θ_LTP
-        @simd for s = rowptr[i]:(rowptr[i+1]-1)
+        for s = rowptr[i]:(rowptr[i+1]-1)
             j = J[index[s]]
-            if ltd_u > 0.0f0 && fireJ[j]
-                W[index[s]] += -A_LTD * ltd_u
+            if fireJ[j]
+                W[index[s]] += -A_LTD * R(u[i] - θ_LTD)
             end
             if ltp > 0.0f0 && ltd_v > 0.0f0
                 W[index[s]] += A_LTP * x[j] * ltp * ltd_v
@@ -186,8 +185,8 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
         end
     end
 
-    @inbounds @simd for i in eachindex(W)
-        W[i] = clamp(W[i], Wmin, Wmax)
+    @turbo for i in eachindex(W)
+        @inbounds W[i] = clamp(W[i], Wmin, Wmax)
     end
 end
 
