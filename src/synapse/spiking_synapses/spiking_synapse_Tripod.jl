@@ -175,8 +175,8 @@ function forward!(c::SynapseTripod, param::SpikingSynapseParameter)
     @unpack colptr, I, W, fireJ, g, αs = c
     @inbounds for j ∈ eachindex(fireJ) # loop on presynaptic neurons
         if fireJ[j] # presynaptic fire
-            @simd for a in eachindex(αs)
-                for s ∈ colptr[j]:(colptr[j+1]-1)
+            @inbounds @fastmath for a in eachindex(αs)
+                @simd for s ∈ colptr[j]:(colptr[j+1]-1)
                     g[I[s], a] += W[s] * αs[a]
                 end
             end
