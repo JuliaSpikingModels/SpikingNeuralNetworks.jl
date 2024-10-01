@@ -99,6 +99,7 @@ function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w = nothing, kwargs..
         w = sparse(w)
     end
     w[diagind(w)] .= 0
+    @assert size(w) == (post.N, pre.N)
     rowptr, colptr, I, J, index, W = dsparse(w) # Get info about the existing connections
     # rowptr: row pointer
     # colptr: column pointer
