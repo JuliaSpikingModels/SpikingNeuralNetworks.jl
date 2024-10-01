@@ -46,10 +46,6 @@ include("synapse/spike_rate_synapse.jl")
 include("synapse/sparse_plasticity.jl")
 include("synapse/spiking_synapse.jl")
 
-include("network/background.jl")
-include("network/inputs.jl")
-
-
 
 function __init__()
     @require Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80" include("plot.jl")

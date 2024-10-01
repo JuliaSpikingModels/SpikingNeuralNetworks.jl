@@ -7,4 +7,6 @@ abstract type AbstractSparseSynapse <: AbstractSynapse end
 abstract type AbstractNormalization <: AbstractSynapse end
 
 Spiketimes = Vector{Vector{Float32}}
+Model = @NamedTuple{syn::Any, pop::Any}
+
 export Spiketimes
