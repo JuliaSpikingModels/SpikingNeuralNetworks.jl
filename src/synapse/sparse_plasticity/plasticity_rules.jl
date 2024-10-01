@@ -155,7 +155,7 @@ After all updates, the synaptic weights are clamped between `Wmin` and `Wmax`.
 
 """
 function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
-    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireI, fireJ, g, index = c
+    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireJ, g, index = c
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
     R(x::Float32) = x < 0.0f0 ? 0.0f0 : x
 
@@ -164,14 +164,14 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
         @inbounds @fastmath x[j] += dt * (-x[j] + fireJ[j]) / τx
     end
 
-
-    @turbo for i in eachindex(fireI) # Iterate over postsynaptic neurons
+    Is = 1:length(rowptr)-1
+    @turbo for i in eachindex(Is) # Iterate over postsynaptic neurons
         @inbounds u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
         @inbounds v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
     end
         # @simd for s = colptr[j]:(colptr[j+1]-1) 
 
-    @inbounds @fastmath for i in eachindex(fireI) # Iterate over postsynaptic neurons
+    @inbounds @fastmath for i in eachindex(Is) # Iterate over postsynaptic neurons
         ltd_v = v[i] - θ_LTD
         ltp = v_post[i] - θ_LTP
         for s = rowptr[i]:(rowptr[i+1]-1)
