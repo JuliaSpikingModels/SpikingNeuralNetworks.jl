@@ -10,7 +10,7 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
     ΔT::FT = 2mV # Slope factor
     τw::FT = 144ms # Adaptation time constant (Spike-triggered adaptation time scale)
     a::FT = 4nS # Subthreshold adaptation parameter
-    b::FT = 80.5nA # Spike-triggered adaptation parameter (amount by which the voltage is increased at each threshold crossing)
+    b::FT = 80.5pA # Spike-triggered adaptation parameter (amount by which the voltage is increased at each threshold crossing)
     τabs::FT = 1ms # Absolute refractory period
 
     ## Synapses
@@ -23,7 +23,7 @@ gL = 40nS         #(nS) leak conductance #BretteGerstner2005 says 30 nS
 
     ## Dynamic spike threshold
     At::FT = 10mV # Post spike threshold increase
-    τT::FT = 10ms # Adaptive threshold time scale
+    τT::FT = 30ms # Adaptive threshold time scale
 end
 
 @snn_kw mutable struct AdEx{VFT = Vector{Float32},VBT = Vector{Bool}} <: AbstractIF
