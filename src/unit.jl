@@ -49,6 +49,8 @@ second / Ω ≈ farad
 macro load_units()
     exs = map((
         :metre,
+        :Hz,
+        :kHz,
         :meter,
         :cm,
         :mm,

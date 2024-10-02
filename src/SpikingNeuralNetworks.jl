@@ -33,6 +33,7 @@ include("neuron/poisson.jl")
 include("neuron/iz.jl")
 include("neuron/hh.jl")
 include("neuron/rate.jl")
+include("neuron/Dendrite.jl")
 include("neuron/Tripod.jl")
 
 abstract type AbstractConnection end
