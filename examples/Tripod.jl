@@ -44,7 +44,7 @@ inh_d1 = SNN.SynapseTripod(
 inh_d2 = SNN.SynapseTripod(
     I,
     Tripod_pop,
-    "d2",
+    :d2,
     :inh,
     p = 0.2,
     σ = 1,
@@ -60,7 +60,7 @@ inh_s = SNN.SynapseTripod(
     param = SNN.iSTDPParameterRate(r = r0),
 )
 exc_d1 = SNN.SynapseTripod(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 15.0)
-exc_d2 = SNN.SynapseTripod(E, Tripod_pop, "d2", :exc, p = 0.2, σ = 15.0)
+exc_d2 = SNN.SynapseTripod(E, Tripod_pop, :d2, :exc, p = 0.2, σ = 15.0)
 exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
 
 synapses = [inh_d1, inh_d2, inh_s, exc_d1, exc_d2, exc_s]

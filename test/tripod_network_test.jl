@@ -56,7 +56,7 @@ function test_network()
         E_to_E_d2 = SNN.SynapseTripod(
             E,
             E,
-            "d2",
+            :d2,
             :exc,
             p = 0.2,
             σ = 30,
