@@ -16,15 +16,14 @@ using DrWatson
 using Plots
 using SpikingNeuralNetworks
 SNN.@load_units;
-using SNNUtils
 using Random, Statistics, StatsBase
 using Statistics, SparseArrays
 
 # %% [markdown]
 # Create vectors of dendritic parameters and the Tripod model
 N = 1
-d1 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = rand(250:1:350) * um)...) for n = 1:N]
-d2 = [SNN.Dendrite(; SNNUtils.create_dendrite(l = 0um)...) for n = 1:N]
+d1 = [SNN.Dendrite(; create_dendrite(l = rand(250:1:350) * um)...) for n = 1:N]
+d2 = [SNN.Dendrite(; create_dendrite(l = 0um)...) for n = 1:N]
 Tripod_pop = SNN.TripodNeurons(
     N = N,
     d1 = d1,

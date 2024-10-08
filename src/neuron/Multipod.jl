@@ -26,7 +26,7 @@ The types `FT` and `IT` represent Float32 and Int64 respectively.
 """
 AdExTripod
 
-@snn_kw struct AdExTripod{FT = Float32,IT = Int64} <: AbstractIFParameter
+@snn_kw struct AdExTripod{FT = Float32,IT = Int64} <: AbstractGeneralizedIFParameter
     #Membrane parameters
     C::FT = 281pF           # (pF) membrane timescale
     gl::FT = 40nS                # (nS) gl is the leaking conductance,opposite of Rm
@@ -139,7 +139,7 @@ Tripod
     IT = Int32,
     FT = Float32,
     AdExType = AdExTripod,
-} <: AbstractIF
+} <: AbstractGeneralizedIF
     t::VIT = [0]
     param::AdExType = AdExTripod()
     ## These are compulsory parameters
