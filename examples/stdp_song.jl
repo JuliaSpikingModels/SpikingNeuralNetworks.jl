@@ -6,9 +6,23 @@ inputs = SNN.Poisson(; N = 1000)
 inputs.param = SNN.PoissonParameter(; rate = 1Hz)
 
 neurons = SNN.IF(; N = 1)
-neurons.param =    SNN.IFParameterSingleExponential(; τm = 10ms, τe = 5ms, El = -74mV, E_e = 0mV, Vt = -54mV, Vr = -60mV)
+neurons.param = SNN.IFParameterSingleExponential(;
+    τm = 10ms,
+    τe = 5ms,
+    El = -74mV,
+    E_e = 0mV,
+    Vt = -54mV,
+    Vr = -60mV,
+)
 
-S = SNN.SpikingSynapse(inputs, neurons, :ge; σ = 0.01, p = 1.0, param = SNN.vSTDPParameter(; Wmax = 0.01))
+S = SNN.SpikingSynapse(
+    inputs,
+    neurons,
+    :ge;
+    σ = 0.01,
+    p = 1.0,
+    param = SNN.vSTDPParameter(; Wmax = 0.01),
+)
 
 P = [inputs, neurons];
 C = [S];

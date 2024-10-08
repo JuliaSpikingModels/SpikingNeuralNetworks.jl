@@ -17,7 +17,11 @@ Simulates the spiking neural network by iterating over the populations and synap
 - Finally, the function calls the `record!` function on `c` to record its state.
 
 """
-function sim!(P::Vector{TN}, C::Vector{TS}, dt::Float32) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
+function sim!(
+    P::Vector{TN},
+    C::Vector{TS},
+    dt::Float32,
+) where {TN<:AbstractNeuron,TS<:AbstractSynapse}
     # Threads.@threads 
     for p in P
         hasfield(typeof(p), :t) && (p.t[1] += 1)
@@ -62,7 +66,7 @@ function sim!(
     dt = 0.1f0,
     duration = 10.0f0,
     pbar = false,
-) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
+) where {TN<:AbstractNeuron,TS<:AbstractSynapse}
     dt = Float32(dt)
     duration = Float32(duration)
     dts = 0.0f0:dt:(duration-dt)
@@ -95,7 +99,11 @@ Trains the spiking neural network by iterating over the neurons and synapses in 
 - Finally, the function calls the `record!` function on `c` to record its state.
 
 """
-function train!(P::Vector{TN}, C::Vector{TS}, dt::Float32) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
+function train!(
+    P::Vector{TN},
+    C::Vector{TS},
+    dt::Float32,
+) where {TN<:AbstractNeuron,TS<:AbstractSynapse}
     for p in P
         hasfield(typeof(p), :t) && (p.t[1] += 1)
         integrate!(p, p.param, dt)
@@ -138,7 +146,7 @@ function train!(
     C::Vector{TS};
     dt = 0.1ms,
     duration = 10ms,
-) where {TN <: AbstractNeuron, TS<:AbstractSynapse }
+) where {TN<:AbstractNeuron,TS<:AbstractSynapse}
     dt = Float32(dt)
     pbar = ProgressBar(0.0f0:dt:(duration-dt))
     # pbar = 0.0f0:dt:(duration-dt)

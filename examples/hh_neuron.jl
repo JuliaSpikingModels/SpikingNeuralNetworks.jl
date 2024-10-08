@@ -9,7 +9,7 @@ gl = 0.03msiemens * cm^*(-2) * 20_000um^2
 
 HHP = SNN.HHParameter(En = 45mV, Ek = -82mV, El = -59.38mV, gn = gn, gk = gk, gl = gl)
 
-xs = range(0,2,length=1000)
+xs = range(0, 2, length = 1000)
 ys = zeros(length(xs))
 for n in eachindex(xs)
     E = SNN.HH(; N = 10, param = HHP)

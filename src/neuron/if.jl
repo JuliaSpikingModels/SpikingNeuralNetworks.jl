@@ -31,7 +31,11 @@ end
     τabs::FT = 1ms # Absolute refractory period
 end
 
-@snn_kw mutable struct IF{VFT = Vector{Float32},VBT = Vector{Bool}, IFT<:AbstractIFParameter} <: AbstractGeneralizedIF
+@snn_kw mutable struct IF{
+    VFT = Vector{Float32},
+    VBT = Vector{Bool},
+    IFT<:AbstractIFParameter,
+} <: AbstractGeneralizedIF
     param::IFT = IFParameter()
     N::Int32 = 100
     v::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
@@ -50,15 +54,17 @@ end
 """
 IF
 
-function integrate!(p::IF, param::T, dt::Float32) where T<:AbstractIFParameter
+function integrate!(p::IF, param::T, dt::Float32) where {T<:AbstractIFParameter}
     @unpack N, v, ge, gi, fire, I, records, he, hi, timespikes = p
-    @unpack τm, Vt, Vr, El, R, ΔT,  E_i, E_e, τabs = param
+    @unpack τm, Vt, Vr, El, R, ΔT, E_i, E_e, τabs = param
     @inbounds for i = 1:N
         v[i] +=
             dt * (
                 -(v[i] - El)  # leakage
-                + R * ge[i] * (E_e - v[i]) + R * gi[i] * (E_i - v[i])
-                + I[i]*R #synaptic term
+                +
+                R * ge[i] * (E_e - v[i]) +
+                R * gi[i] * (E_i - v[i]) +
+                I[i] * R #synaptic term
             ) / τm
 
     end
@@ -82,12 +88,10 @@ function update_synapses!(p::IF, param::IFParameter, dt::Float32)
 end
 
 function update_synapses!(p::IF, param::IFParameterSingleExponential, dt::Float32)
-    @unpack N, ge, gi= p
+    @unpack N, ge, gi = p
     @unpack τe, τi = param
     @inbounds for i = 1:N
         ge[i] += dt * (-ge[i] / τe)
         gi[i] += dt * (-gi[i] / τi)
     end
 end
-
-

@@ -98,11 +98,7 @@ end
 
 
 
-function plasticity!(
-    c::AbstractSparseSynapse,
-    param::STDPParameter,
-    dt::Float32,
-)
+function plasticity!(c::AbstractSparseSynapse, param::STDPParameter, dt::Float32)
     @unpack rowptr, colptr, I, J, index, W, tpre, tpost, Apre, Apost, fireI, fireJ, g = c
     @unpack τpre, τpost, Wmax, ΔApre, ΔApost = param
     @inbounds for j = 1:(length(colptr)-1)
@@ -169,7 +165,7 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float3
         @inbounds u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
         @inbounds v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
     end
-        # @simd for s = colptr[j]:(colptr[j+1]-1) 
+    # @simd for s = colptr[j]:(colptr[j+1]-1) 
 
     @inbounds @fastmath for i in eachindex(Is) # Iterate over postsynaptic neurons
         ltd_v = v[i] - θ_LTD
@@ -192,22 +188,22 @@ end
 
 
 
-    # @inbounds @fastmath @simd for i in eachindex(fireI) # Iterate over postsynaptic neurons
-    #     u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
-    #     v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
-    # end
-    # Threads.@threads for j in eachindex(fireJ) # Iterate over presynaptic neurons
-    #     # @simd for s = colptr[j]:(colptr[j+1]-1) 
-    #     @inbounds @fastmath @simd for s = colptr[j]:(colptr[j+1]-1)
-    #         i = I[s] # get_postsynaptic cell
-    #         ltd_u = R(u[i] - θ_LTD)
-    #         if fireJ[j] && ltd_u >0
-    #             W[s] += -A_LTD * ltd_u
-    #         end
-    #         ltd_v = v[i] - θ_LTD
-    #         ltp = v_post[i] - θ_LTP
-    #         if ltp > 0.0f0 && ltd_v > 0.0f0
-    #             W[index[s]] += A_LTP * x[j] * ltp * ltd_v
-    #         end
-    #     end
-    # end
+# @inbounds @fastmath @simd for i in eachindex(fireI) # Iterate over postsynaptic neurons
+#     u[i] += dt * (-u[i] + v_post[i]) / τu # postsynaptic neuron
+#     v[i] += dt * (-v[i] + v_post[i]) / τv # postsynaptic neuron
+# end
+# Threads.@threads for j in eachindex(fireJ) # Iterate over presynaptic neurons
+#     # @simd for s = colptr[j]:(colptr[j+1]-1) 
+#     @inbounds @fastmath @simd for s = colptr[j]:(colptr[j+1]-1)
+#         i = I[s] # get_postsynaptic cell
+#         ltd_u = R(u[i] - θ_LTD)
+#         if fireJ[j] && ltd_u >0
+#             W[s] += -A_LTD * ltd_u
+#         end
+#         ltd_v = v[i] - θ_LTD
+#         ltp = v_post[i] - θ_LTP
+#         if ltp > 0.0f0 && ltd_v > 0.0f0
+#             W[index[s]] += A_LTP * x[j] * ltp * ltd_v
+#         end
+#     end
+# end

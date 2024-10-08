@@ -4,9 +4,8 @@
 end
 
 @snn_kw struct EmptySynapse <: AbstractSynapse
-    param::EmptyParam=EmptyParam()
-    records::Dict= Dict()
+    param::EmptyParam = EmptyParam()
+    records::Dict = Dict()
 end
 
-function forward!(p::EmptySynapse, param::EmptyParam)
-end
+function forward!(p::EmptySynapse, param::EmptyParam) end

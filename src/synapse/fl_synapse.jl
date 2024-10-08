@@ -1,6 +1,10 @@
 struct FLSynapseParameter end
 
-@snn_kw mutable struct FLSynapse{MFT = Matrix{Float32},VFT = Vector{Float32},FT = Float32} <: AbstractSynapse
+@snn_kw mutable struct FLSynapse{
+    MFT = Matrix{Float32},
+    VFT = Vector{Float32},
+    FT = Float32,
+} <: AbstractSynapse
     param::FLSynapseParameter = FLSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate

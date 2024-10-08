@@ -15,7 +15,7 @@ II = SNN.SpikingSynapse(I, I, :gi; σ = -10, p = 0.02)
 EG = SNN.SpikeRateSynapse(E, G; σ = 1.0, p = 0.02)
 # GG = SNN.RateSynapse(G, G; σ = 1.2, p = 1.0)
 P = [E, G, I]
-C = [EE, EI, IE, II, EG,]
+C = [EE, EI, IE, II, EG]
 # C = [EE, EG, GG]
 
 SNN.monitor([E, I], [:fire])

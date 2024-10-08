@@ -1,6 +1,7 @@
 struct PINningSynapseParameter end
 
-@snn_kw mutable struct PINningSynapse{MFT = Matrix{Float32},VFT = Vector{Float32}} <: AbstractSynapse
+@snn_kw mutable struct PINningSynapse{MFT = Matrix{Float32},VFT = Vector{Float32}} <:
+                       AbstractSynapse
     param::PINningSynapseParameter = PINningSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -31,11 +32,7 @@ function forward!(c::PINningSynapse, param::PINningSynapseParameter)
     mul!(g, W, rJ)
 end
 
-function plasticity!(
-    c::PINningSynapse,
-    param::PINningSynapseParameter,
-    dt::Float32,
-)
+function plasticity!(c::PINningSynapse, param::PINningSynapseParameter, dt::Float32)
     @unpack W, rI, g, P, q, f = c
     C = 1 / (1 + dot(q, rI))
     BLAS.ger!(C, f - g, q, W)

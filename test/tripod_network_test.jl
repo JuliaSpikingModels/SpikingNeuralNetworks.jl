@@ -6,13 +6,8 @@ function test_network()
     network = let
         NE = 400
         NI = 100
-        d1 = [
-            SNN.Dendrite(; create_dendrite(l = rand(150:1:350) * um)...)
-            for n = 1:NE
-        ]
-        d2 = [
-            SNN.Dendrite(; create_dendrite(l = rand(150:1:350))...) for n = 1:NE
-        ]
+        d1 = [SNN.Dendrite(; create_dendrite(l = rand(150:1:350) * um)...) for n = 1:NE]
+        d2 = [SNN.Dendrite(; create_dendrite(l = rand(150:1:350))...) for n = 1:NE]
         E = SNN.TripodNeurons(
             N = NE,
             d1 = d1,

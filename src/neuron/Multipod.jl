@@ -83,11 +83,11 @@ The type `FT` represents Float32.
 """
 Dendrite
 
-get_dendrites_zeros(N, args...)= (;(Symbol("d$x")=>zeros(args...) for x in 1:N)...)
-get_dendrites_vr(N, vr, args...)= (;(Symbol("d$x")=>fill(vr,args...) for x in 1:N)...)
+get_dendrites_zeros(N, args...) = (; (Symbol("d$x") => zeros(args...) for x = 1:N)...)
+get_dendrites_vr(N, vr, args...) = (; (Symbol("d$x") => fill(vr, args...) for x = 1:N)...)
 
-Nd= 10
-N=4
+Nd = 10
+N = 4
 
 
 @snn_kw struct Dendrite{FT = Float32}
@@ -153,13 +153,13 @@ Tripod
     ##
     # dendrites
     gax::VFT = get_dendrites_zeros(Nd, N)
-    cd::VFT  = get_dendrites_zeros(Nd, N)
-    gm::VFT  = get_dendrites_zeros(Nd, N)
+    cd::VFT = get_dendrites_zeros(Nd, N)
+    gm::VFT = get_dendrites_zeros(Nd, N)
     ##
     # Membrane potential and adaptation
     v_s::VFT = param.Vr .+ rand(N) .* (param.Vt - param.Vr)
     w_s::VFT = zeros(N)
-    v_d::VFT = get_dendrites_zeros(Nd, N) 
+    v_d::VFT = get_dendrites_zeros(Nd, N)
     # Synapses
     g_s::MFT = zeros(N, 2)
     h_s::MFT = zeros(N, 2)
@@ -172,10 +172,10 @@ Tripod
     θ::VFT = ones(N) * param.Vt
     records::Dict = Dict()
     ## 
-    Δv::VFT = zeros(Nd+1)
-    Δv_temp::VFT = zeros(Nd+1)
+    Δv::VFT = zeros(Nd + 1)
+    Δv_temp::VFT = zeros(Nd + 1)
     cs::VFT = zeros(Nd)
-    is::VFT = zeros(Nd+1)
+    is::VFT = zeros(Nd + 1)
 end
 
 function MultipodNeurons(;
@@ -184,13 +184,21 @@ function MultipodNeurons(;
     soma_syn::Synapse,
     dend_syn::Synapse,
     NMDA::NMDAVoltageDependency,
-    param = AdExTripod(); 
+    param = AdExTripod(),
 )::Tripod
     Nd = length(dendrites)
-    ds = (;(Symbol("d$nd")=>d for d in eachindex(dendrites))...)
-    gax = (;(Symbol("d$nd")=>[d.gax for d in dendrites[nd]] for nd in eachindex(dendrites))...)
-    cd = (;(Symbol("d$nd")=>[d.cd for d in dendrites[nd]] for nd in eachindex(dendrites))...)
-    gm = (;(Symbol("d$nd")=>[d.gm for d in dendrites[nd]] for nd in eachindex(dendrites))...)
+    ds = (; (Symbol("d$nd") => d for d in eachindex(dendrites))...)
+    gax = (;
+        (
+            Symbol("d$nd") => [d.gax for d in dendrites[nd]] for nd in eachindex(dendrites)
+        )...
+    )
+    cd = (;
+        (Symbol("d$nd") => [d.cd for d in dendrites[nd]] for nd in eachindex(dendrites))...
+    )
+    gm = (;
+        (Symbol("d$nd") => [d.gm for d in dendrites[nd]] for nd in eachindex(dendrites))...
+    )
     return Multipod(
         N = N,
         d1 = d1,
