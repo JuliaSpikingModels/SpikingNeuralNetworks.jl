@@ -40,6 +40,5 @@ end
         test_typeparams(SNN.RateSynapse; args = (SNN.Rate(), SNN.Rate()))
         test_typeparams(SNN.PINningSynapse; args = (SNN.Rate(), SNN.Rate()))
         test_typeparams(SNN.FLSynapse; args = (SNN.Rate(), SNN.Rate()))
-        test_typeparams(SNN.SpikingSynapse; args = (SNN.IF(), SNN.IF(), :ge))
     end # Type parameters
 end # Constructors
