@@ -24,10 +24,7 @@ include("synapse.jl")
 
 abstract type AbstractPopulation end
 include("neuron/if.jl")
-include("neuron/if_constant_input.jl")
-include("neuron/if2.jl")
 include("neuron/AdEx.jl")
-include("neuron/AdEx_constant_input.jl")
 include("neuron/noisy_if.jl")
 include("neuron/poisson.jl")
 include("neuron/iz.jl")
@@ -37,6 +34,7 @@ include("neuron/Dendrite.jl")
 include("neuron/Tripod.jl")
 
 abstract type AbstractConnection end
+include("synapse/empty.jl")
 include("synapse/normalization.jl")
 include("synapse/rate_synapse.jl")
 include("synapse/fl_synapse.jl")
