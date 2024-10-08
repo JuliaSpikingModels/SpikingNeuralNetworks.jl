@@ -31,7 +31,7 @@ abstract type iSTDPParameter <: SpikingSynapseParameter end
     Wmin::FT = 0.01pF
 end
 
-@snn_kw struct iSTDPParameterPotential{FT = Float32} <: iSTDPParameter
+@snn_kw mutable struct iSTDPParameterPotential{FT = Float32} <: iSTDPParameter
     η::FT = 0.01pA
     v0::FT = -50mV
     τy::FT = 200ms

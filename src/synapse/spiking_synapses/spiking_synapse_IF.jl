@@ -76,16 +76,6 @@ end
     g::VFT # postsynaptic conductance
     records::Dict = Dict()
 end
-# function forward!(c::InhSynapseTripod, param::SpikingSynapseParameter)
-#     @unpack colptr, I, W, fireJ, g, αs = c
-#     @inbounds @simd for j in 1:(length(colptr)-1)
-#         if fireJ[j]
-#             for s in colptr[j]:(colptr[j+1]-1)
-#                 g[I[s], :] .+= W[s] .* αs
-#             end
-#         end
-#     end
-# end
 
 """
 [Spking Synapse](https://brian2.readthedocs.io/en/2.0b4/resources/tutorials/2-intro-to-brian-synapses.html)

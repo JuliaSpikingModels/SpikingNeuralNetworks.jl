@@ -97,38 +97,38 @@ end
 
 
 
-#
-# function plasticity!(
-#     c::AbstractSparseSynapse,
-#     param::STDPParameter,
-#     dt::Float32,
-# )
-#     @unpack rowptr, colptr, I, J, index, W, tpre, tpost, Apre, Apost, fireI, fireJ, g = c
-#     @unpack τpre, τpost, Wmax, ΔApre, ΔApost = param
-#     @inbounds for j = 1:(length(colptr)-1)
-#         if fireJ[j]
-#             for s = colptr[j]:(colptr[j+1]-1)
-#                 Apre[s] *= exp32(-(t - tpre[s]) / τpre)
-#                 Apost[s] *= exp32(-(t - tpost[s]) / τpost)
-#                 Apre[s] += ΔApre
-#                 tpre[s] = t
-#                 W[s] = clamp(W[s] + Apost[s], 0.0f0, Wmax)
-#             end
-#         end
-#     end
-#     @inbounds for i = 1:(length(rowptr)-1)
-#         if fireI[i]
-#             for st = rowptr[i]:(rowptr[i+1]-1)
-#                 s = index[st]
-#                 Apre[s] *= exp32(-(t - tpre[s]) / τpre)
-#                 Apost[s] *= exp32(-(t - tpost[s]) / τpost)
-#                 Apost[s] += ΔApost
-#                 tpost[s] = t
-#                 W[s] = clamp(W[s] + Apre[s], 0.0f0, Wmax)
-#             end
-#         end
-#     end
-# end
+
+function plasticity!(
+    c::AbstractSparseSynapse,
+    param::STDPParameter,
+    dt::Float32,
+)
+    @unpack rowptr, colptr, I, J, index, W, tpre, tpost, Apre, Apost, fireI, fireJ, g = c
+    @unpack τpre, τpost, Wmax, ΔApre, ΔApost = param
+    @inbounds for j = 1:(length(colptr)-1)
+        if fireJ[j]
+            for s = colptr[j]:(colptr[j+1]-1)
+                Apre[s] *= exp32(-(t - tpre[s]) / τpre)
+                Apost[s] *= exp32(-(t - tpost[s]) / τpost)
+                Apre[s] += ΔApre
+                tpre[s] = t
+                W[s] = clamp(W[s] + Apost[s], 0.0f0, Wmax)
+            end
+        end
+    end
+    @inbounds for i = 1:(length(rowptr)-1)
+        if fireI[i]
+            for st = rowptr[i]:(rowptr[i+1]-1)
+                s = index[st]
+                Apre[s] *= exp32(-(t - tpre[s]) / τpre)
+                Apost[s] *= exp32(-(t - tpost[s]) / τpost)
+                Apost[s] += ΔApost
+                tpost[s] = t
+                W[s] = clamp(W[s] + Apre[s], 0.0f0, Wmax)
+            end
+        end
+    end
+end
 
 """
     plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
