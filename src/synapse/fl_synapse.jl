@@ -1,6 +1,6 @@
 struct FLSynapseParameter end
 
-@snn_kw mutable struct FLSynapse{MFT = Matrix{Float32},VFT = Vector{Float32},FT = Float32}
+@snn_kw mutable struct FLSynapse{MFT = Matrix{Float32},VFT = Vector{Float32},FT = Float32} <: AbstractSynapse
     param::FLSynapseParameter = FLSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -39,7 +39,7 @@ function forward!(c::FLSynapse, param::FLSynapseParameter)
     axpy!(c.z, u, g)
 end
 
-function plasticity!(c::FLSynapse, param::FLSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(c::FLSynapse, param::FLSynapseParameter, dt::Float32)
     @unpack rI, P, q, w, f, z = c
     C = 1 / (1 + dot(q, rI))
     axpy!(C * (f - z), q, w)

@@ -1,6 +1,6 @@
 struct PINningSynapseParameter end
 
-@snn_kw mutable struct PINningSynapse{MFT = Matrix{Float32},VFT = Vector{Float32}}
+@snn_kw mutable struct PINningSynapse{MFT = Matrix{Float32},VFT = Vector{Float32}} <: AbstractSynapse
     param::PINningSynapseParameter = PINningSynapseParameter()
     W::MFT  # synaptic weight
     rI::VFT # postsynaptic rate
@@ -35,7 +35,6 @@ function plasticity!(
     c::PINningSynapse,
     param::PINningSynapseParameter,
     dt::Float32,
-    t::Float32,
 )
     @unpack W, rI, g, P, q, f = c
     C = 1 / (1 + dot(q, rI))

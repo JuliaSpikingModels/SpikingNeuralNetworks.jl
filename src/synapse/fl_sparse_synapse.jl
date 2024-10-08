@@ -1,6 +1,6 @@
 struct FLSparseSynapseParameter end
 
-@snn_kw mutable struct FLSparseSynapse{VFT = Vector{Float32},FT = Float32}
+@snn_kw mutable struct FLSparseSynapse{VFT = Vector{Float32},FT = Float32} <: AbstractSynapse
     param::FLSparseSynapseParameter = FLSparseSynapseParameter()
     colptr::Vector{Int32} # column pointer of sparse W
     I::Vector{Int32}      # postsynaptic index of W
@@ -52,7 +52,6 @@ function plasticity!(
     c::FLSparseSynapse,
     param::FLSparseSynapseParameter,
     dt::Float32,
-    t::Float32,
 )
     @unpack rI, P, q, w, f, z = c
     C = 1 / (1 + dot(q, rI))

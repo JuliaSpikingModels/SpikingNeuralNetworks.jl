@@ -22,7 +22,7 @@ f(t) =
 ts = 0:0.1ms:1440ms
 for (i, t) in enumerate(ts)
     ppc_ppc.f .= [f(t); ppc_ppc.g[2:end]]
-    SNN.train!(P, C, 0.1ms, t)
+    SNN.train!(P, C, 0.1f0)
 end
 
 SNN.vecplot(ppc_ppc, :g);

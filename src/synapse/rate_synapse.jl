@@ -2,7 +2,7 @@
     lr::FT = 1e-3
 end
 
-@snn_kw mutable struct RateSynapse{VIT = Vector{Int32},VFT = Vector{Float32}}
+@snn_kw mutable struct RateSynapse{VIT = Vector{Int32},VFT = Vector{Float32}} <: AbstractSynapse
     param::RateSynapseParameter = RateSynapseParameter()
     colptr::VIT # column pointer of sparse W
     I::VIT      # postsynaptic index of W
@@ -37,7 +37,7 @@ function forward!(c::RateSynapse, param::RateSynapseParameter)
     end
 end
 
-function plasticity!(c::RateSynapse, param::RateSynapseParameter, dt::Float32, t::Float32)
+function plasticity!(c::RateSynapse, param::RateSynapseParameter, dt::Float32)
     @unpack colptr, I, W, rI, rJ, g = c
     @unpack lr = param
     @inbounds for j = 1:(length(colptr)-1)

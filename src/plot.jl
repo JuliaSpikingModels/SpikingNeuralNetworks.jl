@@ -127,7 +127,7 @@ end
 function rateplot(P::Array, sym)
     R = vcat([rateplot(p, sym) for p in P]...)
     y0 = [p.N for p in P][2:end-1]
-    plt = heatmap(flipdim(R, 1), leg = :none)
+    plt = heatmap(R, leg = :none)
     !isempty(y0) && hline!(plt, cumsum(y0), line = (:black, 1))
     plt
 end

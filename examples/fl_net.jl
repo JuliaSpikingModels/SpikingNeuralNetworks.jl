@@ -16,14 +16,14 @@ f(t) =
     (A / 6.0) * sin(3π * fr * t) +
     (A / 3.0) * sin(4π * fr * t)
 
-for t = 0:0.1ms:1440ms
+for t = 0:0.1ms:2440ms
     SS.f = f(t)
-    SNN.train!(P, C, 0.1ms)
+    SNN.train!(P, C, 0.1f0)
 end
 
-for t = 1440ms:0.1ms:1700ms
+for t = 2440ms:0.1ms:3700ms
     SS.f = f(t)
-    SNN.sim!(P, C, 0.1ms)
+    SNN.sim!(P, C, 0.1f0)
 end
 
 plot([SNN.getrecord(SS, :f) SNN.getrecord(SS, :z)], label = ["f" "z"]);

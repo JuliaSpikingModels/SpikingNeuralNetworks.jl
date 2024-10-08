@@ -9,13 +9,13 @@ gl = 0.03msiemens * cm^*(-2) * 20_000um^2
 
 HHP = SNN.HHParameter(En = 45mV, Ek = -82mV, El = -59.38mV, gn = gn, gk = gk, gl = gl)
 
-xs = range(10e-6, 10e-4, 20)
+xs = range(0,2,length=1000)
 ys = zeros(length(xs))
-Threads.@threads for n in eachindex(xs)
+for n in eachindex(xs)
     E = SNN.HH(; N = 10, param = HHP)
     E.I .= xs[n]
     SNN.monitor(E, [:v, :fire])
-    SNN.sim!([E], []; dt = 0.01ms, duration = 1000ms)
+    SNN.sim!([E]; dt = 0.01ms, duration = 1000ms)
     r = mean(SNN.HH_spike_count(E))
     ys[n] = r
 end
