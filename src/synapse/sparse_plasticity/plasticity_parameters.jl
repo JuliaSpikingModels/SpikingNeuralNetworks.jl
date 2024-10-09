@@ -15,10 +15,10 @@ end
     ΔApost::FT = -ΔApre * τpre / τpost * 1.05
 end
 
-@snn_kw struct STDPVariables{VFT = Vector{Float32}} <: PlasticityVariables
+@snn_kw struct STDPVariables{VFT = Vector{Float32}, IT =  Int} <: PlasticityVariables
     ## Plasticity variables
-    Npost::Int
-    Npre::Int
+    Npost::IT
+    Npre::IT
     tpre::VFT = zeros(Npre) # presynaptic spiking time
     tpost::VFT = zeros(Npost) # postsynaptic spiking time
     Apre::VFT = zeros(Npre) # presynaptic trace
@@ -41,10 +41,10 @@ end
     Wmin::FT = 0.1pF
 end
 
-@snn_kw struct vSTDPVariables{VFT = Vector{Float32}} <: PlasticityVariables
+@snn_kw struct vSTDPVariables{VFT = Vector{Float32}, IT= Int} <: PlasticityVariables
     ## Plasticity variables
-    Npost::Int
-    Npre::Int
+    Npost::IT
+    Npre::IT
     u::VFT = zeros(Npost) # presynaptic spiking time
     v::VFT = zeros(Npost) # postsynaptic spiking time
     x::VFT = zeros(Npost) # postsynaptic spiking time
@@ -72,10 +72,10 @@ end
     Wmin::FT = 0.01pF
 end
 
-@snn_kw struct iSTDPVariables{VFT = Vector{Float32}} <: PlasticityVariables
+@snn_kw struct iSTDPVariables{VFT = Vector{Float32}, IT=Int} <: PlasticityVariables
     ## Plasticity variables
-    Npost::Int
-    Npre::Int
+    Npost::IT
+    Npre::IT
     tpost::VFT = zeros(Npost) # postsynaptic spiking time 
     tpre::VFT = zeros(Npre) # presynaptic spiking time
 end

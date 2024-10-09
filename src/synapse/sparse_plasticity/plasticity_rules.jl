@@ -19,12 +19,15 @@ This is an in-place operation that modifies the input `AbstractSparseSynapse` ob
   otherwise the excitatory term decays exponentially over time with a time constant `τy`.
 - The synaptic weights are bounded by `Wmin` and `Wmax`.
 """
-##
 function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Float32)
+    plasticity!(c, param, c.plasticity, dt)
+end
+
+##
+function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, plasticity::iSTDPVariables, dt::Float32)
     @unpack rowptr, colptr, index, I, J, W, fireI, fireJ, g = c
     @unpack η, r, τy, Wmax, Wmin = param
-    @unpack tpre, tpost = c.plasticity
-
+    @unpack tpre, tpost = plasticity
     # @inbounds 
     # if pre-synaptic inhibitory neuron fires
     for j in eachindex(fireJ) # presynaptic indices j
@@ -69,9 +72,13 @@ This is an in-place operation that modifies the input `AbstractSparseSynapse` ob
 - The synaptic weights are bounded by `Wmin` and `Wmax`.
 """
 function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterPotential, dt::Float32)
+    plasticity!(c, param, c.plasticity, dt)
+end
+
+function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterPotential, plasticity::iSTDPVariables, dt::Float32)
     @unpack rowptr, colptr, index, I, J, W, v_post, fireI, fireJ, g = c
     @unpack η, v0, τy, Wmax, Wmin = param
-    @unpack tpre, tpost = c.plasticity
+    @unpack tpre, tpost = plasticity
 
     # @inbounds 
     # if pre-synaptic inhibitory neuron fires
@@ -99,10 +106,16 @@ end
 
 
 
+## It's broken   !!
 
 function plasticity!(c::AbstractSparseSynapse, param::STDPParameter, dt::Float32)
-    @unpack rowptr, colptr, I, J, index, W, tpre, tpost, Apre, Apost, fireI, fireJ, g = c
-    @unpack τpre, τpost, Wmax, ΔApre, ΔApost = param
+    plasticity!(c, param, c.plasticity, dt)
+end
+
+function plasticity!(c::AbstractSparseSynapse, param::STDPParameter, plasticity::STDPVariables, dt::Float32)
+    @unpack rowptr, colptr, I, J, index, W, fireI, fireJ, g = c
+    @unpack τpre, τpost, Wmax, ΔApre, ΔApost = plasticity 
+
     @inbounds for j = 1:(length(colptr)-1)
         if fireJ[j]
             for s = colptr[j]:(colptr[j+1]-1)
@@ -153,8 +166,12 @@ After all updates, the synaptic weights are clamped between `Wmin` and `Wmax`.
 
 """
 function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
+    plasticity!(c, param, c.plasticity, dt)
+end
+
+function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, plasticity::vSTDPVariables, dt::Float32)
     @unpack rowptr, colptr, I, J, index, W, v_post, fireJ, g, index = c
-    @unpack  u, v, x = c.plasticity
+    @unpack  u, v, x = plasticity
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
     R(x::Float32) = x < 0.0f0 ? 0.0f0 : x
 
