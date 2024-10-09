@@ -47,6 +47,7 @@ include("synapse/pinning_sparse_synapse.jl")
 include("synapse/spike_rate_synapse.jl")
 include("synapse/sparse_plasticity.jl")
 include("synapse/spiking_synapse.jl")
+include("synapse/compartment_synapse.jl")
 
 
 function __init__()
