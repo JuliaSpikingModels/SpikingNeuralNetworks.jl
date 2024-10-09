@@ -1,15 +1,12 @@
 abstract type AbstractSpikingSynapse <: AbstractSparseSynapse end
 
 @snn_kw mutable struct SpikingSynapse{
-    GT,
-    VIT <: Vector{Int32}, 
-    VFT <: Vector{Float32}, 
-    VBT <: Vector{Bool},
-    ParamT <: SpikingSynapseParameter,
-    PlasticityT <: PlasticityVariables
+    VIT = Vector{Int32}, 
+    VFT = Vector{Float32}, 
+    VBT = Vector{Bool},
     } <: AbstractSpikingSynapse
-    param::ParamT = no_STDPParameter()
-    plasticity::PlasticityT = no_PlasticityVariables()
+    param::SpikingSynapseParameter = no_STDPParameter()
+    plasticity::PlasticityVariables = no_PlasticityVariables()
     rowptr::VIT # row pointer of sparse W
     colptr::VIT # column pointer of sparse W
     I::VIT      # postsynaptic index of W
@@ -19,7 +16,7 @@ abstract type AbstractSpikingSynapse <: AbstractSparseSynapse end
     fireI::VBT # postsynaptic firing
     fireJ::VBT # presynaptic firing
     v_post::VFT 
-    g::GT  # rise conductance #! This is the rise conductance
+    g::VFT  # rise conductance
     αs::VFT = []
     receptors::VIT = []
     records::Dict = Dict()
