@@ -21,8 +21,9 @@ This is an in-place operation that modifies the input `AbstractSparseSynapse` ob
 """
 ##
 function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterRate, dt::Float32)
-    @unpack rowptr, colptr, index, I, J, W, tpost, tpre, fireI, fireJ, g = c
+    @unpack rowptr, colptr, index, I, J, W, fireI, fireJ, g = c
     @unpack η, r, τy, Wmax, Wmin = param
+    @unpack tpre, tpost = c.plasticity
 
     # @inbounds 
     # if pre-synaptic inhibitory neuron fires
@@ -68,8 +69,9 @@ This is an in-place operation that modifies the input `AbstractSparseSynapse` ob
 - The synaptic weights are bounded by `Wmin` and `Wmax`.
 """
 function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterPotential, dt::Float32)
-    @unpack rowptr, colptr, index, I, J, W, v_post, tpost, tpre, fireI, fireJ, g = c
+    @unpack rowptr, colptr, index, I, J, W, v_post, fireI, fireJ, g = c
     @unpack η, v0, τy, Wmax, Wmin = param
+    @unpack tpre, tpost = c.plasticity
 
     # @inbounds 
     # if pre-synaptic inhibitory neuron fires
@@ -151,7 +153,8 @@ After all updates, the synaptic weights are clamped between `Wmin` and `Wmax`.
 
 """
 function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, dt::Float32)
-    @unpack rowptr, colptr, I, J, index, W, u, v, x, v_post, fireJ, g, index = c
+    @unpack rowptr, colptr, I, J, index, W, v_post, fireJ, g, index = c
+    @unpack  u, v, x = c.plasticity
     @unpack A_LTD, A_LTP, θ_LTD, θ_LTP, τu, τv, τx, Wmax, Wmin = param
     R(x::Float32) = x < 0.0f0 ? 0.0f0 : x
 

@@ -12,13 +12,16 @@ using Random
 using Logging
 using StaticArrays
 using ProgressBars
+using Parameters
 using LoopVectorization
+
 
 
 include("structs.jl")
 include("unit.jl")
 include("main.jl")
 include("util.jl")
+include("macros.jl")
 include("analysis.jl")
 include("synapse.jl")
 
