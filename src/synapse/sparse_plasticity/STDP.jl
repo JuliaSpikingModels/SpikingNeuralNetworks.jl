@@ -55,3 +55,5 @@ function plasticity!(c::AbstractSparseSynapse, param::STDPParameter, plasticity:
         end
     end
 end
+
+export STDPParameter, STDPVariables, get_variables, plasticity!

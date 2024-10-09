@@ -16,6 +16,7 @@ end
     Wmin::FT = 0.01pF
 end
 
+
 @snn_kw struct iSTDPVariables{VFT = Vector{Float32}, IT=Int} <: PlasticityVariables
     ## Plasticity variables
     Npost::IT
@@ -132,3 +133,4 @@ function plasticity!(c::AbstractSparseSynapse, param::iSTDPParameterPotential, p
     end
 end
 
+export iSTDPParameterRate, iSTDPParameterPotential, iSTDPVariables, get_variables, plasticity!

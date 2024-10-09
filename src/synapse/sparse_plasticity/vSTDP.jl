@@ -88,6 +88,7 @@ function plasticity!(c::AbstractSparseSynapse, param::vSTDPParameter, plasticity
     end
 end
 
+export vSTDPParameter, vSTDPVariables, get_variables, plasticity!
 
 
 # @inbounds @fastmath @simd for i in eachindex(fireI) # Iterate over postsynaptic neurons
