@@ -47,7 +47,7 @@ v0_d2 = -40mV
 
 I = SNN.Poisson(N = N_I, param = SNN.PoissonParameter(rate = ν_E))
 E = SNN.Poisson(N = N_E, param = SNN.PoissonParameter(rate = ν_I))
-inh_d1 = SNN.SynapseTripod(
+inh_d1 = SNN.CompartmentSynapse(
     I,
     Tripod_pop,
     :d1,
@@ -56,7 +56,7 @@ inh_d1 = SNN.SynapseTripod(
     σ = 1,
     param = SNN.iSTDPParameterPotential(v0 = v0_d1),
 )
-inh_s = SNN.SynapseTripod(
+inh_s = SNN.CompartmentSynapse(
     I,
     Tripod_pop,
     "s",
@@ -65,8 +65,8 @@ inh_s = SNN.SynapseTripod(
     σ = 1,
     param = SNN.iSTDPParameterRate(r = r0),
 )
-exc_d1 = SNN.SynapseTripod(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 15.0)
-exc_s = SNN.SynapseTripod(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
+exc_d1 = SNN.CompartmentSynapse(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 15.0)
+exc_s = SNN.CompartmentSynapse(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
 
 synapses = [inh_d1, inh_s, exc_d1, exc_s]
 populations = [Tripod_pop, I, E]

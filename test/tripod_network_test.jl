@@ -21,7 +21,7 @@ function test_network()
         I2 = SNN.IF(; N = NI ÷ 2, param = SNN.IFParameter(τm = 20ms, El = -55mV))
         E_to_I1 = SNN.SpikingSynapse(E, I1, :ge, p = 0.2, σ = 15.0)
         E_to_I2 = SNN.SpikingSynapse(E, I2, :ge, p = 0.2, σ = 15.0)
-        I2_to_E = SNN.SynapseTripod(
+        I2_to_E = SNN.CompartmentSynapse(
             I2,
             E,
             :d1,
@@ -30,7 +30,7 @@ function test_network()
             σ = 5.0,
             param = SNN.iSTDPParameterPotential(v0 = -50mV),
         )
-        I1_to_E = SNN.SynapseTripod(
+        I1_to_E = SNN.CompartmentSynapse(
             I1,
             E,
             "s",
@@ -39,7 +39,7 @@ function test_network()
             σ = 5.0,
             param = SNN.iSTDPParameterRate(r = 10Hz),
         )
-        E_to_E_d1 = SNN.SynapseTripod(
+        E_to_E_d1 = SNN.CompartmentSynapse(
             E,
             E,
             :d1,
@@ -48,7 +48,7 @@ function test_network()
             σ = 30,
             param = SNN.vSTDPParameter(),
         )
-        E_to_E_d2 = SNN.SynapseTripod(
+        E_to_E_d2 = SNN.CompartmentSynapse(
             E,
             E,
             :d2,
