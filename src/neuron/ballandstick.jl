@@ -132,11 +132,11 @@ function integrate!(p::BallAndStick, param::AdExSoma, dt::Float32)
 				Δv_temp[_i] = 0.0f0
 				Δv[_i] = 0.0f0
 			end
-			update_tripod!(p, Δv, i, param, 0.0f0)
+			update_ballandstick!(p, Δv, i, param, 0.0f0)
 			for _i ∈ 1:2
 				Δv_temp[_i] = Δv[_i]
 			end
-			update_tripod!(p, Δv, i, param, dt)
+			update_ballandstick!(p, Δv, i, param, dt)
 			v_s[i] += 0.5 * dt * (Δv_temp[1] + Δv[1])
 			v_d[i] += 0.5 * dt * (Δv_temp[2] + Δv[2])
 			w_s[i] += dt * ΔwAdEx(v_s[i], w_s[i], param)
@@ -162,7 +162,7 @@ function integrate!(p::BallAndStick, param::AdExSoma, dt::Float32)
 	return
 end
 
-function update_tripod!(
+function update_ballandstick!(
 	p::BallAndStick,
 	Δv::Vector{Float32},
 	i::Int64,
