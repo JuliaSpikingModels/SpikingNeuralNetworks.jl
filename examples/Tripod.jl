@@ -17,7 +17,7 @@ Tripod_pop = SNN.TripodNeurons(
     soma_syn = Synapse(DuarteGluSoma, MilesGabaSoma),
     dend_syn = Synapse(EyalGluDend, MilesGabaDend),
     NMDA = SNN.EyalNMDA,
-    param = SNN.AdExTripod(b = 0.0f0, Vr = -50),
+    param = SNN.AdExSoma(b = 0.0f0, Vr = -50),
 )
 # background
 N_E = 1000

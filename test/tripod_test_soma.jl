@@ -13,7 +13,7 @@ E = SNN.TripodNeurons(
     soma_syn = Synapse(DuarteGluSoma, MilesGabaSoma),
     dend_syn = Synapse(EyalGluDend, MilesGabaDend),
     NMDA = SNN.EyalNMDA,
-    param = SNN.AdExTripod(Er = -55mV),
+    param = SNN.AdExSoma(Er = -55mV),
 )
 
 

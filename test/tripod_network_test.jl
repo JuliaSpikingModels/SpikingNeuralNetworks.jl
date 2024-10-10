@@ -15,7 +15,7 @@ function test_network()
             soma_syn = Synapse(DuarteGluSoma, MilesGabaSoma),
             dend_syn = Synapse(EyalGluDend, MilesGabaDend),
             NMDA = SNN.EyalNMDA,
-            param = SNN.AdExTripod(Vr = -50),
+            param = SNN.AdExSoma(Vr = -50),
         )
         I1 = SNN.IF(; N = NI ÷ 2, param = SNN.IFParameter(τm = 7ms, El = -55mV))
         I2 = SNN.IF(; N = NI ÷ 2, param = SNN.IFParameter(τm = 20ms, El = -55mV))
