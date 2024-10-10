@@ -51,6 +51,91 @@ end
     τT::FT = 30ms # Adaptive threshold time scale
 end
 
+"""
+	AdExSoma
+
+An implementation of the Adaptive Exponential Integrate-and-Fire (AdEx) model, adapted for a Tripod neuron.
+
+# Fields
+- `C::FT = 281pF`: Membrane capacitance.
+- `gl::FT = 40nS`: Leak conductance.
+- `R::FT = nS / gl * GΩ`: Total membrane resistance.
+- `τm::FT = C / gl`: Membrane time constant.
+- `Er::FT = -70.6mV`: Resting potential.
+- `Vr::FT = -55.6mV`: Reset potential.
+- `Vt::FT = -50.4mV`: Rheobase threshold.
+- `ΔT::FT = 2mV`: Slope factor.
+- `τw::FT = 144ms`: Adaptation current time constant.
+- `a::FT = 4nS`: Subthreshold adaptation conductance.
+- `b::FT = 80.5pA`: Spike-triggered adaptation increment.
+- `AP_membrane::FT = 10.0f0mV`: After-potential membrane parameter .
+- `BAP::FT = 1.0f0mV`: Backpropagating action potential parameter.
+- `up::IT = 1ms`, `idle::IT = 2ms`: Parameters related to spikes.
+
+The types `FT` and `IT` represent Float32 and Int64 respectively.
+"""
+AdExSoma
+
+@snn_kw struct AdExSoma{FT = Float32,IT = Int64} <: AbstractAdExParameter
+    #Membrane parameters
+    C::FT = 281pF           # (pF) membrane timescale
+    gl::FT = 40nS                # (nS) gl is the leaking conductance,opposite of Rm
+    R::FT = nS / gl * GΩ               # (GΩ) total membrane resistance
+    τm::FT = C / gl                # (ms) C / gl
+    Er::FT = -70.6mV          # (mV) resting potential
+    # AdEx model
+    Vr::FT = -55.6mV     # (mV) Reset potential of membrane
+    Vt::FT = -50.4mV          # (mv) Rheobase threshold
+    ΔT::FT = 2mV            # (mV) Threshold sharpness
+    # Adaptation parameters
+    τw::FT = 144ms          #ms adaptation current relaxing time
+    a::FT = 4nS            #nS adaptation current to membrane
+    b::FT = 80.5pA         #pA adaptation current increase due to spike
+    # After spike timescales and membrane
+    AP_membrane::FT = 10.0f0mV
+    BAP::FT = 1.0f0mV
+    up::IT = 1ms
+    idle::IT = 2ms
+end
+
+"""
+	PostSpike
+
+A structure defining the parameters of a post-synaptic spike event.
+
+# Fields
+- `A::FT`: Amplitude of the Post-Synaptic Potential (PSP).
+- `τA::FT`: Time constant of the PSP.
+
+The type `FT` represents Float32.
+"""
+PostSpike
+
+@snn_kw struct PostSpike{FT<:Float32}
+    A::FT
+    τA::FT
+end
+
+"""
+	Dendrite
+
+A structure representing a dendritic compartment within a neuron model.
+
+# Fields
+- `Er::FT = -70.6mV`: Resting potential.
+- `C::FT = 10pF`: Membrane capacitance.
+- `gax::FT = 10nS`: Axial conductance.
+- `gm::FT = 1nS`: Membrane conductance.
+- `l::FT = 150um`: Length of the dendritic compartment.
+- `d::FT = 4um`: Diameter of the dendrite.
+
+The type `FT` represents Float32.
+"""
+Dendrite
+
+
+
+
 @snn_kw struct AdEx{
     VFT = Vector{Float32},
     VBT = Vector{Bool},
