@@ -36,8 +36,38 @@ function C_mem(; Cd = Cd, d = d, l = l)
     (Cd * π * d * l)
 end
 
-function create_dendrite(; d::Real = 4um, l::Real, s = "H")
-    @unpack Ri, Rd, Cd = s == "M" ? MOUSE : HUMAN
+@snn_kw struct Dendrite{VFT = Vector{Float32}}
+    N::Int32 = 100
+    Er::VFT = zeros(N)             # (mV) resting potential
+    l::VFT =  zeros(N) # μm distance from next compartment
+    d::VFT =  zeros(N) # μm dendrite diameter
+    C::VFT =  zeros(N)
+    gax::VFT =zeros(N)# (nS) axial conductance
+    gm::VFT = zeros(N)
+end
+
+function create_dendrite(N::Int, l; kwargs...)
+    dendrites = Dendrite(N = N)
+    for i in 1:N
+        dendrite = create_dendrite(l; kwargs...)
+        dendrites.Er[i] = -70.6f0
+        dendrites.l[i] = dendrite.l
+        dendrites.d[i] = dendrite.d
+        dendrites.C[i] = dendrite.C
+        dendrites.gax[i] = dendrite.gax
+        dendrites.gm[i] = dendrite.gm
+    end
+    return dendrites
+end
+
+function create_dendrite(l; d::Real = 4um,  s = :human)
+    if isa(l, Tuple)
+        l = rand(l[1]:1um:l[2])
+    else
+        l = l
+    end
+    l > 500um && error("Dendrite length must be less than 500um")
+    @unpack Ri, Rd, Cd = s == :mouse ? MOUSE : HUMAN
     if l <= 0
         return (gm = 1.0f0, gax = 0.0f0, C = 1.0f0, l = -1, d = d)
     else
@@ -51,4 +81,9 @@ function create_dendrite(; d::Real = 4um, l::Real, s = "H")
     end
 end
 
-export create_dendrite
+proximal_distal = [(150um, 400um), (150um, 400um)]
+proximal_proximal = [(150um, 300um), (150um, 300um)]
+proximal = [(150um, 300um)]
+all_lengths = [(150um, 400um)]
+
+export create_dendrite, Dendrite, Physiology, HUMAN, MOUSE, proximal_distal, proximal_proximal, proximal, all_lengths

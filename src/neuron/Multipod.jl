@@ -2,7 +2,7 @@
 
 
 """
-	AdExTripod
+	AdExSoma
 
 An implementation of the Adaptive Exponential Integrate-and-Fire (AdEx) model, adapted for a Tripod neuron.
 
@@ -24,9 +24,9 @@ An implementation of the Adaptive Exponential Integrate-and-Fire (AdEx) model, a
 
 The types `FT` and `IT` represent Float32 and Int64 respectively.
 """
-AdExTripod
+AdExSoma
 
-@snn_kw struct AdExTripod{FT = Float32,IT = Int64} <: AbstractGeneralizedIFParameter
+@snn_kw struct AdExSoma{FT = Float32,IT = Int64} <: AbstractGeneralizedIFParameter
     #Membrane parameters
     C::FT = 281pF           # (pF) membrane timescale
     gl::FT = 40nS                # (nS) gl is the leaking conductance,opposite of Rm
@@ -104,7 +104,7 @@ This is a struct representing a spiking neural network model that include two de
 
 # Fields 
 - `t::VIT` : tracker of simulation index [0] 
-- `param::AdExTripod` : Parameters for the AdEx model.
+- `param::AdExSoma` : Parameters for the AdEx model.
 - `N::Int32` : The number of neurons in the network.
 - `soma_syn::ST` : Synapses connected to the soma.
 - `dend_syn::ST` : Synapses connected to the dendrites.
@@ -138,10 +138,10 @@ Tripod
     PST = PostSpike{Float32},
     IT = Int32,
     FT = Float32,
-    AdExType = AdExTripod,
+    AdExType = AdExSoma,
 } <: AbstractGeneralizedIF
     t::VIT = [0]
-    param::AdExType = AdExTripod()
+    param::AdExType = AdExSoma()
     ## These are compulsory parameters
     N::IT = 100
     Nd::IT = 3
@@ -184,7 +184,7 @@ function MultipodNeurons(;
     soma_syn::Synapse,
     dend_syn::Synapse,
     NMDA::NMDAVoltageDependency,
-    param = AdExTripod(),
+    param = AdExSoma(),
 )::Tripod
     Nd = length(dendrites)
     ds = (; (Symbol("d$nd") => d for d in eachindex(dendrites))...)
@@ -221,7 +221,7 @@ end
 const soma_rr = SA[:AMPA, :GABAa]
 const dend_rr = SA[:AMPA, :NMDA, :GABAa, :GABAb]
 
-function integrate!(p::Tripod, param::AdExTripod, dt::Float32)
+function integrate!(p::Tripod, param::AdExSoma, dt::Float32)
     @unpack N,
     v_s,
     w_s,
@@ -322,7 +322,7 @@ function update_tripod!(
     p::Tripod,
     Δv::Vector{Float32},
     i::Int64,
-    param::AdExTripod,
+    param::AdExSoma,
     dt::Float32,
 )
 
@@ -382,7 +382,7 @@ function update_tripod!(
 end
 
 
-# @inline @fastmath function ΔvAdEx(v::Float32, w::Float32, θ::Float32, axial::Float32, synaptic::Float32, AdEx::AdExTripod)::Float32
+# @inline @fastmath function ΔvAdEx(v::Float32, w::Float32, θ::Float32, axial::Float32, synaptic::Float32, AdEx::AdExSoma)::Float32
 #     return 1/ AdEx.C * (
 #         AdEx.gl * (
 #                 (-v + AdEx.Er) + 
@@ -394,7 +394,7 @@ end
 #         ) 
 # end ## external currents
 
-@inline @fastmath function ΔwAdEx(v::Float32, w::Float32, AdEx::AdExTripod)::Float32
+@inline @fastmath function ΔwAdEx(v::Float32, w::Float32, AdEx::AdExSoma)::Float32
     return (AdEx.a * (v - AdEx.Er) - w) / AdEx.τw
 end
 

@@ -27,14 +27,15 @@ include("synapse.jl")
 
 abstract type AbstractPopulation end
 include("neuron/if.jl")
-include("neuron/AdEx.jl")
+include("neuron/adEx.jl")
 include("neuron/noisy_if.jl")
 include("neuron/poisson.jl")
 include("neuron/iz.jl")
 include("neuron/hh.jl")
 include("neuron/rate.jl")
-include("neuron/Dendrite.jl")
-include("neuron/Tripod.jl")
+include("neuron/dendrite.jl")
+include("neuron/tripod.jl")
+include("neuron/ballandstick.jl")
 
 abstract type AbstractConnection end
 include("synapse/empty.jl")
