@@ -33,7 +33,7 @@ function test_network()
         I1_to_E = SNN.CompartmentSynapse(
             I1,
             E,
-            "s",
+            :s,
             :inh,
             p = 0.2,
             σ = 5.0,

@@ -4,11 +4,13 @@ struct no_STDPParameter <: SpikingSynapseParameter end
 
 ## No plasticity
 struct no_PlasticityVariables <: PlasticityVariables end
+
 function get_variables(param::no_STDPParameter, Npre, Npost)
     return no_PlasticityVariables()
 end
 
 function plasticity!(c::AbstractSparseSynapse, param::no_STDPParameter, dt::Float32) end
+##
 
 include("sparse_plasticity/vSTDP.jl")
 include("sparse_plasticity/iSTDP.jl")

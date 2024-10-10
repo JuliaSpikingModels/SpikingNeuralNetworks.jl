@@ -59,14 +59,14 @@ inh_d1 = SNN.CompartmentSynapse(
 inh_s = SNN.CompartmentSynapse(
     I,
     Tripod_pop,
-    "s",
+    :s,
     :inh,
     p = 0.1,
     σ = 1,
     param = SNN.iSTDPParameterRate(r = r0),
 )
 exc_d1 = SNN.CompartmentSynapse(E, Tripod_pop, :d1, :exc, p = 0.2, σ = 15.0)
-exc_s = SNN.CompartmentSynapse(E, Tripod_pop, "s", :exc, p = 0.2, σ = σ_s)
+exc_s = SNN.CompartmentSynapse(E, Tripod_pop, :s, :exc, p = 0.2, σ = σ_s)
 
 synapses = [inh_d1, inh_s, exc_d1, exc_s]
 populations = [Tripod_pop, I, E]

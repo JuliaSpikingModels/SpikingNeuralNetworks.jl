@@ -33,7 +33,7 @@ function SpikingSynapse(pre, post, sym; σ = 0.0, p = 0.0, w = nothing, kwargs..
     
     rowptr, colptr, I, J, index, W = dsparse(w)
     fireI, fireJ, v_post = post.fire, pre.fire, post.v
-    g = @views getfield(post, sym)[:]
+    g = getfield(post, sym)
     
     # set the paramter for the synaptic plasticity
     param = haskey(kwargs, :param) ? kwargs[:param] : no_STDPParameter()
