@@ -261,4 +261,4 @@ end
 	return (AdEx.a * (v - AdEx.Er) - w) / AdEx.τw
 end
 
-export Tripod, TripodPopulation, Dendrite, PostSpike
+export Tripod
